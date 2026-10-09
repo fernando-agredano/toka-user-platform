@@ -66,3 +66,22 @@ CONTEXTO §6 pide que auth invalide su caché de permisos ante `role.*`. Se aña
 - role-service no valida que `userId` exista (no tiene datos de usuarios): asignar roles a un UUID inexistente crea una fila huérfana inocua.
 - PATCH de usuario solo cambia `firstName/lastName`; cambiar el email requeriría sincronizar auth y queda fuera de alcance.
 - Caché `user:{id}` e invalidación son best-effort: tras `deactivate` otra réplica puede servir hasta una lectura previa a la invalidación (TTL 300 s como cota).
+
+## Fase 4
+
+### 19. Audit-service: idempotencia en dos capas y redacción defensiva
+El consumidor `audit.all` (binding `#`) hereda la deduplicación por `eventId` en Redis de `BaseConsumer`, pero la fuente de verdad es el índice único `eventId` en Mongo: un duplicado (código 11000) se trata como éxito (`insert` devuelve `false`). Así sigue siendo idempotente aunque Redis pierda datos. `createAuditEntry` redacta claves sensibles (`password`, `token`, `authorization`…) a cualquier profundidad como defensa en profundidad, aunque los productores ya no las envíen.
+
+### 20. Audit-service: modelo de lectura (CQRS) y retención
+Solo escribe un servicio (el consumidor) y solo lee la API; las entradas son inmutables. Índices: `eventId` único, `(type, occurredAt)`, `occurredAt`, `(actor.userId, occurredAt)`. TTL opcional con `AUDIT_RETENTION_DAYS` (default 365, `0` lo desactiva). Cambiar el valor en una colección con índice TTL existente exige recrear el índice. `/api/audit/stats` devuelve `total`, `byType`, `failedLogins` y `lockedAccounts`. Un rango `from > to` responde 400. Mongoose se usa directo (sin `@nestjs/mongoose`) para no añadir una dependencia por una sola conexión.
+
+### 21. Infraestructura declarativa
+`definitions.json` declara usuario, exchanges `toka.events`/`toka.dlx` (topic), colas y bindings, incluidas `auth.user-activated` y `auth.role-changed` (desvíos de fases 2 y 3). Todas las colas de consumidores llevan exactamente `x-dead-letter-exchange: toka.dlx`, los mismos argumentos que declara `BaseConsumer`; cualquier diferencia haría fallar el `assertQueue` con PRECONDITION_FAILED. `toka.dlq` se enlaza a `toka.dlx` con `#`.
+
+### 22. Gateway: upstreams estáticos para APIs, resolución perezosa para el frontend
+Los upstreams de API se resuelven al arrancar (el `depends_on` del compose los garantiza). `/` usa variable + `resolver 127.0.0.11`, de modo que nginx arranca aunque el frontend no exista todavía (502 hasta la Fase 6). `/api/*/internal/*` devuelve 404 mediante una location regex, que tiene prioridad sobre los prefijos. El `x-correlation-id` entrante se respeta o se genera con `$request_id`, y se devuelve en la respuesta. Se añade `/healthz` propio del gateway.
+
+### 23. Bugs de Docker encontrados al levantar el stack por primera vez
+- `HEALTHCHECK` con `wget http://localhost`: en Alpine `localhost` resuelve a `::1` y la app escucha en IPv4, así que quedaba `unhealthy`. Ahora usa `127.0.0.1` en los cuatro servicios.
+- Las imágenes runtime de user y role no tenían `openssl` y Prisma no podía ejecutar `migrate deploy`. Se añadió `apk add openssl` al stage runtime.
+- `frontend` y `ai-agent-service` están comentados en el compose y en el `depends_on` del gateway hasta las fases 6 y 9.

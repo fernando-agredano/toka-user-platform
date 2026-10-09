@@ -11,6 +11,7 @@ RUN npm prune --omit=dev
 
 FROM node:22-alpine AS runtime
 WORKDIR /app
+RUN apk add --no-cache openssl
 ENV NODE_ENV=production \
     PORT=3002 \
     PRISMA_HIDE_UPDATE_MESSAGE=1
@@ -25,5 +26,5 @@ USER node
 WORKDIR /app/services/user-service
 EXPOSE 3002
 HEALTHCHECK --interval=10s --timeout=3s --start-period=30s --retries=5 \
-  CMD wget -qO- http://localhost:3002/health || exit 1
+  CMD wget -qO- http://127.0.0.1:3002/health || exit 1
 CMD ["sh", "-c", "/app/node_modules/.bin/prisma migrate deploy && node dist/main.js"]

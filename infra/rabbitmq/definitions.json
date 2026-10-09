@@ -1,0 +1,183 @@
+{
+  "rabbit_version": "3.13.0",
+  "users": [
+    {
+      "name": "toka",
+      "password": "toka_dev_pwd",
+      "tags": [
+        "administrator"
+      ]
+    }
+  ],
+  "vhosts": [
+    {
+      "name": "/"
+    }
+  ],
+  "permissions": [
+    {
+      "user": "toka",
+      "vhost": "/",
+      "configure": ".*",
+      "write": ".*",
+      "read": ".*"
+    }
+  ],
+  "exchanges": [
+    {
+      "name": "toka.events",
+      "vhost": "/",
+      "type": "topic",
+      "durable": true,
+      "auto_delete": false,
+      "internal": false,
+      "arguments": {}
+    },
+    {
+      "name": "toka.dlx",
+      "vhost": "/",
+      "type": "topic",
+      "durable": true,
+      "auto_delete": false,
+      "internal": false,
+      "arguments": {}
+    }
+  ],
+  "queues": [
+    {
+      "name": "user.auth-registered",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-dead-letter-exchange": "toka.dlx"
+      }
+    },
+    {
+      "name": "role.auth-registered",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-dead-letter-exchange": "toka.dlx"
+      }
+    },
+    {
+      "name": "auth.user-deactivated",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-dead-letter-exchange": "toka.dlx"
+      }
+    },
+    {
+      "name": "auth.user-activated",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-dead-letter-exchange": "toka.dlx"
+      }
+    },
+    {
+      "name": "auth.role-changed",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-dead-letter-exchange": "toka.dlx"
+      }
+    },
+    {
+      "name": "audit.all",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-dead-letter-exchange": "toka.dlx"
+      }
+    },
+    {
+      "name": "toka.dlq",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {}
+    }
+  ],
+  "bindings": [
+    {
+      "source": "toka.events",
+      "vhost": "/",
+      "destination": "user.auth-registered",
+      "destination_type": "queue",
+      "routing_key": "auth.user.registered",
+      "arguments": {}
+    },
+    {
+      "source": "toka.events",
+      "vhost": "/",
+      "destination": "role.auth-registered",
+      "destination_type": "queue",
+      "routing_key": "auth.user.registered",
+      "arguments": {}
+    },
+    {
+      "source": "toka.events",
+      "vhost": "/",
+      "destination": "auth.user-deactivated",
+      "destination_type": "queue",
+      "routing_key": "user.deactivated",
+      "arguments": {}
+    },
+    {
+      "source": "toka.events",
+      "vhost": "/",
+      "destination": "auth.user-activated",
+      "destination_type": "queue",
+      "routing_key": "user.activated",
+      "arguments": {}
+    },
+    {
+      "source": "toka.events",
+      "vhost": "/",
+      "destination": "auth.role-changed",
+      "destination_type": "queue",
+      "routing_key": "role.assigned",
+      "arguments": {}
+    },
+    {
+      "source": "toka.events",
+      "vhost": "/",
+      "destination": "auth.role-changed",
+      "destination_type": "queue",
+      "routing_key": "role.revoked",
+      "arguments": {}
+    },
+    {
+      "source": "toka.events",
+      "vhost": "/",
+      "destination": "auth.role-changed",
+      "destination_type": "queue",
+      "routing_key": "role.permissions.updated",
+      "arguments": {}
+    },
+    {
+      "source": "toka.events",
+      "vhost": "/",
+      "destination": "audit.all",
+      "destination_type": "queue",
+      "routing_key": "#",
+      "arguments": {}
+    },
+    {
+      "source": "toka.dlx",
+      "vhost": "/",
+      "destination": "toka.dlq",
+      "destination_type": "queue",
+      "routing_key": "#",
+      "arguments": {}
+    }
+  ]
+}

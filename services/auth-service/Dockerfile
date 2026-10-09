@@ -27,5 +27,5 @@ USER node
 WORKDIR /app/services/auth-service
 EXPOSE 3001
 HEALTHCHECK --interval=10s --timeout=3s --start-period=30s --retries=5 \
-  CMD wget -qO- http://localhost:3001/health || exit 1
+  CMD wget -qO- http://127.0.0.1:3001/health || exit 1
 CMD ["sh", "-c", "/app/node_modules/.bin/prisma migrate deploy && node dist/main.js"]

@@ -5,7 +5,7 @@
 - [x] Fase 0-1 – CONTEXTO + Arquitectura (Opus)
 - [x] Fase 2 – Monorepo + common + auth-service
 - [x] Fase 3 – user-service + role-service
-- [ ] Fase 4 – audit-service + infra + compose funcional
+- [x] Fase 4 – audit-service + infra + compose funcional
 - [ ] Fase 5 – Tests backend ≥70%
 - [ ] Fase 6 – Frontend
 - [ ] Fase 7 – Tests frontend
@@ -37,9 +37,16 @@
 - Decisiones: `docs/decisiones.md` (Fase 3, §10-18). Desvíos del contrato: cola extra `auth.role-changed`; permisos en tabla `role_permissions`; `POST …/assign` y `DELETE …/roles/:roleId` responden 204.
 - Cómo explicarlo en la entrevista: cada servicio es un bounded context con su BD, y la consistencia entre ellos es por eventos vía outbox, con idempotencia en consumidores; el alta de usuario por admin es una mini-saga (credenciales → perfil) que se autocura porque auth publica `auth.user.registered`; el invariante «no quitar el último ADMIN» es regla de dominio, pero la concurrencia se cierra con un `SELECT … FOR UPDATE` en el repositorio; las mutaciones devuelven si cambió el estado, así reintentos no generan eventos duplicados; la caché de permisos no guarda vacíos porque el rol USER llega de forma asíncrona.
 
+### Fase 4
+
+- Entregado: `services/audit-service` (dominio `AuditEntry` con redacción de secretos, casos de uso registrar/buscar/estadísticas, repositorio Mongoose con índices y TTL opcional, consumidor `audit.all` con binding `#`, `GET /api/audit` y `/api/audit/stats` con `audit:read`, Dockerfile, jest 70%); `infra/postgres/init.sql`, `infra/rabbitmq/definitions.json` (exchanges, DLX, 7 colas + DLQ, bindings) e `infra/gateway/nginx.conf`; `frontend` y `ai-agent-service` comentados en el compose.
+- Verificado: build y tests de todo el monorepo (audit 7 tests, ~100% coverage). `docker compose up -d --build` deja los 5 servicios healthy. Flujo real a través del gateway: register → login (roles USER, `ai:use`) → `GET /api/users/me` → 403 en `/api/audit` para un USER → login admin → `/api/audit` y `/stats` muestran `auth.user.registered`, `role.assigned`, `user.created`, `auth.login.succeeded/failed`; `/api/roles/internal/*` → 404; JWKS → 200; `/` → 502 hasta que exista el frontend.
+- Decisiones: `docs/decisiones.md` (Fase 4, §19-23). Correcciones de fases previas: `HEALTHCHECK` con `127.0.0.1` (IPv6 en Alpine) y `openssl` en el runtime de user y role.
+- Cómo explicarlo en la entrevista: audit es el lado de lectura de un CQRS ligero: consume todo con un binding `#` y es idempotente por un índice único, no solo por Redis; las colas se declaran en `definitions.json` con los mismos argumentos DLX que el código, para que el broker nunca rechace una redeclaración; el gateway bloquea `/internal` con una regex y propaga el correlation-id, así que una petición se puede seguir de nginx a los eventos de auditoría; levantar el stack real destapó dos bugs que los tests unitarios no podían ver (healthcheck IPv6 y openssl para Prisma).
+
 ## Pendientes / notas
 
-- Fase 4: añadir las colas `auth.user-activated` y `auth.role-changed` a `rabbitmq/definitions.json`; las colas deben llevar el argumento `x-dead-letter-exchange: toka.dlx` (ver decisiones §6).
-- Fase 4: el audit-service debe consumir `#`; `infra/postgres/init.sql` debe crear `auth_db`, `user_db`, `role_db`.
+- Fase 6: al crear `frontend/Dockerfile`, descomentar `frontend` en el compose y en el `depends_on` del gateway. Fase 9: lo mismo con `ai-agent-service` y su `location /api/ai/` + upstream en nginx.conf.
+- Fase 5: añadir tests de la infraestructura de audit (repositorio Mongo con `mongodb-memory-server` o similar) si se quiere cubrirla; hoy solo se prueba con el stack real.
 - Fase 5: `@toka/common` está en ~30% de coverage (guards, JwtVerifier, BaseConsumer, EventPublisher sin tests); `npm test` normal pasa, solo `--coverage` falla el umbral.
 - El puerto 3001 de esta máquina estaba ocupado por otro proceso durante el smoke test (se usó 13001); no afecta a Docker.
