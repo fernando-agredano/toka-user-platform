@@ -23,11 +23,11 @@ export const AssistantMessage = ({ response }: { response: ChatResponse }) => {
           <h3 className="mb-1 text-xs font-semibold uppercase tracking-wide text-ink-soft">Fuentes</h3>
           <ul className="space-y-1">
             {sources.map((source, index) => (
-              // biome-ignore lint/suspicious/noArrayIndexKey: sources have no stable id in the contract
-              <li key={index} className="rounded-sm bg-page p-2 text-xs text-ink-soft">
+              <li key={source.id} className="rounded-sm bg-page p-2 text-xs text-ink-soft">
                 <span className="font-medium text-ink">
-                  {source.title ?? source.source ?? `Fuente ${index + 1}`}
+                  [{source.id}] {source.title ?? source.source ?? `Fuente ${index + 1}`}
                 </span>
+                {source.section && ` › ${source.section}`}
                 {source.score !== undefined && ` · relevancia ${source.score.toFixed(2)}`}
                 {source.snippet && <p className="mt-1">{source.snippet}</p>}
               </li>
@@ -47,7 +47,8 @@ export const AssistantMessage = ({ response }: { response: ChatResponse }) => {
         </div>
       )}
 
-      <dl className="grid grid-cols-2 gap-3 border-t border-line pt-3 sm:grid-cols-5">
+      <dl className="grid grid-cols-2 gap-3 border-t border-line pt-3 sm:grid-cols-6">
+        <MetricItem label="Modelo" value={metrics.provider ?? '—'} />
         <MetricItem label="Latencia" value={`${metrics.latencyMs} ms`} />
         <MetricItem label="Tokens (in/out)" value={`${metrics.inputTokens}/${metrics.outputTokens}`} />
         <MetricItem label="Costo" value={`$${metrics.costUsd.toFixed(6)}`} />

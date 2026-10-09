@@ -8,7 +8,7 @@
 `ai-agent-service` expone un agente RAG ("Toka Assist") que responde en español sobre las políticas de la plataforma y sobre los datos que **el usuario que pregunta ya puede ver**. Principios del diseño:
 
 1. **Los permisos no dependen del prompt.** Las tools llaman a los servicios con el JWT del usuario y solo se ofrecen al modelo las que su sesión permite. Aunque el prompt sea vulnerado, no hay datos a los que el usuario no tenga acceso por la UI.
-2. **Coste casi cero y predecible.** Embeddings locales (`Xenova/all-MiniLM-L6-v2`), `gemini-2.5-flash-lite`, presupuesto de tokens fijo por petición, caché de respuestas y como máximo 3 llamadas al LLM por pregunta.
+2. **Coste casi cero y predecible.** Embeddings locales (`Xenova/paraphrase-multilingual-MiniLM-L12-v2`, q8; ver §13), `gemini-2.5-flash-lite`, presupuesto de tokens fijo por petición, caché de respuestas y como máximo 3 llamadas al LLM por pregunta.
 3. **Cada respuesta se mide.** Latencia por etapa, tokens, coste según una tabla de precios configurable y un score de calidad 0-1 determinista (sin un segundo LLM) en todas las respuestas.
 4. **Degradación controlada.** Ante rate limits o caída del proveedor, la respuesta cae a otro proveedor o a un "modo degradado" con los fragmentos recuperados. Nunca a un 500.
 
@@ -31,7 +31,7 @@ sequenceDiagram
     R-->>A: respuesta + coste original
   else cache miss
     A->>A: embedding local de la pregunta (caché 24h)
-    A->>Q: búsqueda top-8, score ≥ umbral
+    A->>Q: búsqueda top-8, score ≥ 0.35
     A->>R: slot del limitador global (LLM_RPM_LIMIT)
     A->>L: system + historial + contexto [S#] + tools permitidas
     loop máx. 2 rondas de tools
@@ -418,11 +418,11 @@ Algoritmo: (1) separar por `##`/`###`; (2) si la sección cabe en 200 wordpieces
 |---|---|
 | Consulta | Mensaje del usuario. Si tiene menos de 6 palabras y hay historial ("¿y para MANAGER?"), se antepone la pregunta anterior del usuario. Es una reescritura heurística sin coste; reescribir con el LLM gastaría una llamada y un slot de RPM. |
 | Embedding de la consulta | Mismo modelo y normalización. Caché Redis `emb:{sha256(consulta normalizada)}`, TTL 24h. |
-| Búsqueda | `limit: 8`, `score_threshold: 0.30` (coseno) |
+| Búsqueda | `limit: 8`, `score_threshold: 0.35` (coseno) |
 | Post-proceso | Fusionar chunks contiguos del mismo documento (`chunkIndex` consecutivo), máximo 2 chunks por sección y quedarse con los **4 mejores**, con un tope de **1.200 tokens** de contexto. |
 | Sin resultados ≥ umbral | Contexto vacío explícito (`(sin documentos relevantes)`). El modelo aplica la regla 1 o usa una tool de datos. |
 
-**Umbral 0,30, calibrado y no fijo.** Con un modelo entrenado en inglés aplicado a texto en español, los cosenos de pares relevantes son más bajos que en inglés (típicamente 0,35-0,65). El valor inicial es conservador. La Fase 9 lo ajusta con el set de evaluación de recuperación (§10.1): se elige el umbral que maximiza el F1 entre "el chunk esperado está en el top-4" y "preguntas fuera de dominio sin contexto".
+**Umbral 0,35, calibrado con `npm run eval:retrieval` (Fase 9).** El valor inicial de la Fase 8 era 0,30 con el modelo solo en inglés; la medición real lo descartó (ver §13): con ese modelo el 83 % del ruido fuera de dominio habría recibido contexto. Con el modelo multilingüe hay una meseta de 0 % de falsos positivos y 96,7 % de recall entre 0,25 y 0,40; 0,35 deja 0,11 de margen sobre el peor ruido (0,24) y 0,05 antes de que caiga el recall.
 
 ## 7. Optimización de tokens
 
@@ -615,7 +615,7 @@ Es compatible con `frontend/src/@types/api.ts`: `AiSource` gana `id` y `section`
 
 | Riesgo | Mitigación |
 |---|---|
-| `all-MiniLM-L6-v2` está entrenado en inglés y la KB está en español: la recuperación es peor. | Encabezado contextual, umbral calibrado y chunks pequeños. **Recomendación:** hacer configurable `EMBEDDING_MODEL` y comparar en §10.1 con `Xenova/paraphrase-multilingual-MiniLM-L12-v2`, que también tiene **384 dimensiones** (no cambia la colección) y es multilingüe. Si mejora el hit@4, se adopta y se anota como desvío. |
+| **Resuelto en la Fase 9:** `all-MiniLM-L6-v2` está entrenado en inglés y la KB está en español; se midió y se reemplazó (§13). | Encabezado contextual, umbral calibrado y chunks pequeños. **Recomendación:** hacer configurable `EMBEDDING_MODEL` y comparar en §10.1 con `Xenova/paraphrase-multilingual-MiniLM-L12-v2`, que también tiene **384 dimensiones** (no cambia la colección) y es multilingüe. Si mejora el hit@4, se adopta y se anota como desvío. |
 | Cuotas del free tier más bajas de lo esperado o cambiantes | `LLM_RPM_LIMIT` configurable, limitador global, modo degradado y caché. |
 | El modelo cita bien pero parafrasea mal (groundedness léxica imperfecta) | El check es una señal, no una garantía; el LLM-as-judge offline mide el resto. |
 | Las tools exponen PII de otros usuarios a un `MANAGER` | Es el mismo dato que ve en la UI; regla 7 (mínimo necesario) + `noPii` sobre entidades no presentes en las fuentes. |
@@ -632,3 +632,21 @@ Es compatible con `frontend/src/@types/api.ts`: `AiSource` gana `id` y `section`
 | Validación de calidad | §9.3, §10 |
 | Rate limiting y manejo de errores de la API de IA | §8 |
 | Costes y optimización de tokens | §7 |
+
+## 13. Cambios respecto al diseño original (Fase 9)
+
+Lo que la implementación y la medición real obligaron a cambiar. El resto del documento se implementó tal cual.
+
+| Tema | Diseño (Fase 8) | Implementado | Por qué |
+|---|---|---|---|
+| Modelo de embeddings | `Xenova/all-MiniLM-L6-v2` (fijado en CONTEXTO) | `Xenova/paraphrase-multilingual-MiniLM-L12-v2`, `dtype: q8`, mismas 384 dimensiones | Medido con 30 preguntas en el dominio y 6 fuera ([informes](../services/ai-agent-service/eval/)): hit@4 86,7 % → 96,7 %, MRR 0,78 → 0,90, y el ruido fuera de dominio baja de 0,43 a 0,17 de coseno medio. q8 pesa ~118 MB frente a 470 MB de fp32 y cuesta un caso de 30. |
+| Umbral de recuperación | 0,30 | 0,35 | Ver §6.4. |
+| Piso del modo degradado | 0,50 | 0,45 | Calibrado para el nuevo modelo (el chunk correcto promedia ~0,60). |
+| Estructura de los documentos | — | La sección «Auditoría» de la guía de uso se dividió en tres subsecciones | Dos preguntas fallaban porque un mismo chunk mezclaba filtros, tabla de eventos y retención. El chunker corta por encabezados, así que la solución es de contenido, no de algoritmo. |
+| Overlap del chunker | 40 wordpieces | 40, pero un párrafo largo se parte en trozos de `max − overlap` | Un trozo lleno hasta el máximo no deja sitio al overlap y este se perdía. |
+| `metrics` de la respuesta | `latencyMs`, `inputTokens`, `outputTokens`, `costUsd`, `cached` | + `provider` y `model` | Cada respuesta dice quién la generó (`gemini`, `ollama`, `mock` o `cache`). |
+| Cliente de Qdrant | — | `@qdrant/js-client-rest` 1.12.0 | Alineado con el servidor `qdrant/qdrant:v1.12.4` del compose. |
+| `Retry-After` | — | Lo emite `ProblemDetailsFilter` de `@toka/common` | Reutilizable por cualquier servicio con errores 429/503. |
+
+Variables nuevas: `LLM_FALLBACK_PROVIDER`, `AI_RATE_LIMIT_PER_MINUTE`, `RAG_MIN_SCORE`, `EMBEDDING_MODEL`, `EMBEDDING_DTYPE`, `LLM_PRICING_JSON` (ver `.env.example`).
+

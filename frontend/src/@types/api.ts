@@ -74,14 +74,17 @@ export interface AuditFilters {
   to?: string;
 }
 
-// AI contract (CONTEXTO.md §5). `sources` and `quality.checks` are loosely typed until phase 9 fixes their shape.
+// AI contract (CONTEXTO.md §5), extended in phase 9 (docs/decisiones.md): sources carry the label the answer cites.
 export interface ChatRequest {
   message: string;
   conversationId?: string;
 }
 
 export interface AiSource {
+  /** Label cited inside the answer: `S#` for documents, `D#` for tool data. */
+  id: string;
   title?: string;
+  section?: string;
   source?: string;
   score?: number;
   snippet?: string;
@@ -98,6 +101,8 @@ export interface ChatResponse {
     outputTokens: number;
     costUsd: number;
     cached: boolean;
+    provider?: string;
+    model?: string;
   };
   quality: { score: number; checks: Record<string, boolean | number> };
 }

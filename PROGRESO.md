@@ -10,7 +10,7 @@
 - [x] Fase 6 – Frontend
 - [x] Fase 7 – Tests frontend (Haiku)
 - [x] Fase 8 – Diseño IA
-- [ ] Fase 9 – ai-agent-service
+- [x] Fase 9 – ai-agent-service
 - [ ] Fase 10 – Ejercicio 4 (diagnóstico)
 - [ ] Fase 11 – Documentación
 - [ ] Fase 12 – Revisión final
@@ -73,11 +73,22 @@
 - Decisiones: `docs/decisiones.md` (Fase 8, §37-42). Desvíos: la clave de caché usa permisos en vez de rol y `conversationId` se devuelve en la respuesta. Variables nuevas para la Fase 9: `LLM_FALLBACK_PROVIDER`, `LLM_PRICING_JSON` y `EMBEDDING_MODEL`.
 - Cómo explicarlo en la entrevista: la seguridad del agente no depende del prompt: las tools usan el JWT del usuario y solo se le ofrecen las que su sesión permite, así que una inyección no da acceso a nada nuevo; los chunks son pequeños porque MiniLM trunca a 256 wordpieces en silencio, y un encabezado `documento > sección` recupera el contexto perdido; cada respuesta lleva coste calculado desde una tabla configurable y un score de calidad determinista (citas verificables `[S#]/[D#]`, números presentes en la fuente, PII redactada) sin pagar un segundo LLM; ante rate limits el sistema degrada a fragmentos citados en vez de fallar.
 
+### Fase 9
+
+- Entregado: `services/ai-agent-service` completo (Clean Architecture): puerto `LlmProvider` con `GeminiProvider` (function calling, `thinkingBudget`, `retryDelay`), `OllamaProvider` y `MockProvider`; embeddings locales (`@huggingface/transformers`) → Qdrant con ingesta incremental al arrancar y por `POST /api/ai/ingest`; chunker por secciones con overlap y encabezado contextual; 4 tools que llaman a user/role/audit con el JWT del usuario y se declaran solo si sus permisos lo permiten; rate limit por usuario (token bucket en Lua), cuota global de RPM compartida (ventana deslizante en Lua), reintentos con backoff, breaker por proveedor, cadena de fallback y modo degradado; caché de respuestas; score de calidad 0-1 determinista; métricas en Mongo con `GET /api/ai/metrics` (`$percentile`); evento `ai.query.completed`. Además: scripts `eval:retrieval` y `eval:agent` con sus informes, `docs/05-ejemplos.md`, `docs/05-integracion.md`, sección «Cambios respecto al diseño» en `docs/05-prompt-engineering.md`, subsecciones nuevas en la base de conocimiento, `Retry-After` en `@toka/common`, y en el frontend `id`/`section`/`provider` en las fuentes y el aviso de servicio actualizado (+3 tests).
+- Verificado: 220 tests del servicio al medir (cobertura 97 % statements, 90 % branches sobre dominio, aplicación y adaptadores LLM; luego se añadió 1 test más sin repetir la medición), `@toka/common` 80, frontend 29 + biome + build. Stack real con `docker compose up -d --build`: agente healthy, 43 chunks indexados, y `eval:agent` 16/16 a través del gateway (políticas, datos con tools, permisos, inyección). El evento llegó a audit-service y `/api/ai/metrics` calcula p50/p95 en Mongo. Evaluación de recuperación con el modelo real en `services/ai-agent-service/eval/`.
+- **No verificado:** (1) `GeminiProvider` nunca habló con la API real: no había `GEMINI_API_KEY`; solo está probado con un cliente falso. Todos los ejemplos son del `MockProvider`. (2) `OllamaProvider` nunca corrió contra un Ollama. (3) El script Lua de la cuota global de RPM nunca se ejecutó contra Redis porque el mock no consume cuota. (4) La cadena de fallback y el 429 por límite de usuario solo están probados con dobles, no de extremo a extremo.
+- Decisiones: `docs/decisiones.md` (Fase 9, §43-51). Desvíos del contrato: modelo de embeddings multilingüe q8 (con datos), imagen Debian slim en vez de Alpine, cliente de Qdrant 1.12.0. Extensiones aditivas a la respuesta de `/api/ai/chat`.
+- Cómo explicarlo en la entrevista: el agente nunca tiene más permisos que quien pregunta, porque cada tool reenvía el JWT del usuario y el servicio dueño del dato decide; el prompt es una segunda barrera, no la primera. Cambié el modelo de embeddings del contrato porque lo medí: con el de inglés, preguntas sin relación con la plataforma puntuaban 0,50 de coseno y no había umbral que separara bien; el multilingüe sube hit@4 de 87 % a 97 % y deja una meseta de 0 % de falsos positivos. La resiliencia es por capas (cuota global compartida, backoff que respeta el `retryDelay` de Gemini, breaker, proveedor de respaldo y por último modo degradado con los fragmentos citados), y solo hay dos errores explícitos: 429 y 503. Cada respuesta lleva coste calculado desde una tabla configurable, un score de calidad verificable sin pagar un segundo LLM, y quién la generó; por eso puedo decir con honestidad que los ejemplos son del mock y qué prueban.
+
 ## Pendientes / notas
 
-- Fase 9: implementar según `docs/05-prompt-engineering.md`; empezar por `eval/retrieval-cases.json` para calibrar umbral y comparar el modelo de embeddings multilingüe antes de fijarlo. Añadir `id` y `section` opcionales a `AiSource` en el frontend.
+- Probar el agente con una `GEMINI_API_KEY` real y regenerar `docs/05-ejemplos.md` (`npm run eval:agent -w services/ai-agent-service -- --examples`); es lo único que falta para cerrar el Ejercicio 5 con respuestas de un modelo de verdad. Con key, ejercitar también el gate de RPM y el 429.
+- Peso de las imágenes de los otros servicios al reconstruirse (`docs/decisiones.md` §51).
+- CI del agente (Fase 12): `npm ci && npm test -w services/ai-agent-service -- --coverage && npm run build -w services/ai-agent-service`.
+- La caché de respuestas del agente vive 1 h en Redis y sobrevive reinicios; al cambiar el código del mock en desarrollo hay que limpiar `ai:resp:*`.
 
-- Fase 9: descomentar `ai-agent-service` en el compose y en el `depends_on` del gateway, y añadir su `location /api/ai/` + upstream en nginx.conf (hoy `/api/ai/*` responde 404). Revisar que `sources[]`, `quality.checks` y `conversationId` coincidan con los tipos de `frontend/src/@types/api.ts` (ver `docs/decisiones.md` §29).
+
 - El frontend no está en los workspaces: su CI (Fase 12/ci-cd) debe tener un job propio con `cd frontend && npm ci && npm run lint && npm run typecheck:test && npm test && npm run build`.
 - Cobertura de servicios sobre `src/**` completo: pendiente decidir si el umbral debe medir también presentación e infraestructura (ver `docs/coverage.md`). Hoy la infraestructura de audit solo se prueba con el stack real.
 - El puerto 3001 de esta máquina estaba ocupado por otro proceso durante el smoke test (se usó 13001); no afecta a Docker.

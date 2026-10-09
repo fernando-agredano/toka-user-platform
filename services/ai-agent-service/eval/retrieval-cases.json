@@ -1,0 +1,42 @@
+{
+  "inDomain": [
+    { "question": "¿Qué permisos existen en la plataforma?", "expected": [{ "docId": "01-politica-roles-permisos.md", "section": "Catálogo" }] },
+    { "question": "¿Qué puede hacer el rol MANAGER?", "expected": [{ "docId": "01-politica-roles-permisos.md", "section": "Roles predefinidos" }] },
+    { "question": "¿Un MANAGER puede asignar roles a otros usuarios?", "expected": [{ "docId": "01-politica-roles-permisos.md", "section": "Roles predefinidos" }] },
+    { "question": "¿Cómo pido un rol adicional?", "expected": [{ "docId": "01-politica-roles-permisos.md", "section": "solicitar un rol" }] },
+    { "question": "¿Qué pasa si quito el rol ADMIN al único administrador?", "expected": [{ "docId": "01-politica-roles-permisos.md", "section": "último administrador" }] },
+    { "question": "¿Puedo crear un rol personalizado como AUDITOR?", "expected": [{ "docId": "01-politica-roles-permisos.md", "section": "Roles personalizados" }] },
+    { "question": "¿Cada cuánto se revisan los roles de mi equipo?", "expected": [{ "docId": "01-politica-roles-permisos.md", "section": "revisión periódica" }] },
+    { "question": "¿Qué rol recibo automáticamente al registrarme?", "expected": [{ "docId": "01-politica-roles-permisos.md", "section": "Asignación automática" }] },
+    { "question": "¿Cuántos caracteres debe tener mi contraseña?", "expected": [{ "docId": "02-politica-contrasenas-seguridad.md", "section": "Requisitos" }] },
+    { "question": "¿Cuántos intentos fallidos tengo antes de que bloqueen mi cuenta?", "expected": [{ "docId": "02-politica-contrasenas-seguridad.md", "section": "Bloqueo" }] },
+    { "question": "¿Cuánto dura el token de acceso?", "expected": [{ "docId": "02-politica-contrasenas-seguridad.md", "section": "Sesiones y tokens" }] },
+    { "question": "¿Cómo se guardan las contraseñas?", "expected": [{ "docId": "02-politica-contrasenas-seguridad.md", "section": "Almacenamiento" }] },
+    { "question": "¿Puedo cambiar mi contraseña yo mismo?", "expected": [{ "docId": "02-politica-contrasenas-seguridad.md", "section": "Cambio y recuperación" }, { "docId": "04-faq-soporte.md", "section": "Olvidé mi contraseña" }] },
+    { "question": "¿A quién reporto un incidente de seguridad?", "expected": [{ "docId": "02-politica-contrasenas-seguridad.md", "section": "Reporte de incidentes" }] },
+    { "question": "¿Qué hago si mi cuenta fue bloqueada?", "expected": [{ "docId": "04-faq-soporte.md", "section": "No puedo iniciar sesión" }, { "docId": "02-politica-contrasenas-seguridad.md", "section": "Bloqueo" }] },
+    { "question": "Olvidé mi contraseña", "expected": [{ "docId": "04-faq-soporte.md", "section": "Olvidé mi contraseña" }, { "docId": "02-politica-contrasenas-seguridad.md", "section": "Cambio y recuperación" }] },
+    { "question": "¿Cómo creo un usuario nuevo?", "expected": [{ "docId": "03-guia-uso-sistema.md", "section": "Usuarios" }] },
+    { "question": "¿Qué filtros tiene la sección de auditoría?", "expected": [{ "docId": "03-guia-uso-sistema.md", "section": "Auditoría" }] },
+    { "question": "¿Cuántas preguntas por minuto puedo hacerle al asistente?", "expected": [{ "docId": "03-guia-uso-sistema.md", "section": "Asistente IA" }, { "docId": "04-faq-soporte.md", "section": "límite de solicitudes" }] },
+    { "question": "¿Qué significa el modo degradado del asistente?", "expected": [{ "docId": "04-faq-soporte.md", "section": "modo degradado" }, { "docId": "03-guia-uso-sistema.md", "section": "Asistente IA" }] },
+    { "question": "¿Puedo cambiar mi correo electrónico?", "expected": [{ "docId": "04-faq-soporte.md", "section": "cambiar mi correo" }] },
+    { "question": "¿Se puede eliminar mi cuenta?", "expected": [{ "docId": "04-faq-soporte.md", "section": "eliminar mi cuenta" }] },
+    { "question": "¿Quién puede ver mis datos personales?", "expected": [{ "docId": "04-faq-soporte.md", "section": "Quién puede ver" }] },
+    { "question": "¿Para qué sirve el identificador de correlación?", "expected": [{ "docId": "04-faq-soporte.md", "section": "identificador de correlación" }] },
+    { "question": "¿Cuál es el horario de soporte?", "expected": [{ "docId": "04-faq-soporte.md", "section": "Contacto y horario" }] },
+    { "question": "Mi sesión se cierra sola, ¿por qué?", "expected": [{ "docId": "04-faq-soporte.md", "section": "sesión se cierra sola" }, { "docId": "02-politica-contrasenas-seguridad.md", "section": "Sesiones y tokens" }] },
+    { "question": "No veo la sección de Roles en el menú", "expected": [{ "docId": "04-faq-soporte.md", "section": "No veo una sección" }, { "docId": "03-guia-uso-sistema.md", "section": "Roles" }] },
+    { "question": "¿Cuánto tiempo se conservan los registros de auditoría?", "expected": [{ "docId": "03-guia-uso-sistema.md", "section": "Auditoría" }] },
+    { "question": "Me registré pero el asistente no me deja usarlo", "expected": [{ "docId": "04-faq-soporte.md", "section": "Me registré" }, { "docId": "01-politica-roles-permisos.md", "section": "Asignación automática" }] },
+    { "question": "¿Qué pasa cuando desactivo a un usuario?", "expected": [{ "docId": "03-guia-uso-sistema.md", "section": "Usuarios" }, { "docId": "01-politica-roles-permisos.md", "section": "Retiro de roles" }] }
+  ],
+  "outOfDomain": [
+    "receta de paella valenciana",
+    "¿Quién ganó el mundial de fútbol de 2018?",
+    "Escribe una función en Python para ordenar una lista",
+    "¿Cuál es la capital de Francia?",
+    "Cuéntame un chiste",
+    "¿Cómo configuro un clúster de Kubernetes en AWS?"
+  ]
+}

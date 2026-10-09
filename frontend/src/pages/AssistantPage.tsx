@@ -51,8 +51,7 @@ export const AssistantPage = () => {
 
       {isServiceUnavailable(error) && (
         <output className="mb-4 block rounded-md border-l-4 border-l-warning bg-warning-soft p-4 text-sm text-ink">
-          El servicio del asistente aún no está disponible. Esta página ya está lista y funcionará cuando se
-          despliegue.
+          El asistente no está disponible en este momento. Intenta de nuevo en un minuto.
         </output>
       )}
 

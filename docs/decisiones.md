@@ -149,3 +149,32 @@ El contrato dice `hash(pregunta normalizada + rol)`. Se usa el conjunto de permi
 
 ### 42. Fallback sin 500: proveedor alternativo o modo degradado
 Ante 429 persistente, breaker abierto o falta de slot global, se usa `LLM_FALLBACK_PROVIDER` (Ollama) si está configurado. Si no, las preguntas de documentación reciben los fragmentos recuperados sin redactar (`degraded: true`) y las que necesitan datos reciben 503 con `Retry-After`. Variables nuevas para la Fase 9: `LLM_FALLBACK_PROVIDER`, `LLM_PRICING_JSON` y `EMBEDDING_MODEL` (opcional).
+
+## Fase 9
+
+### 43. Modelo de embeddings multilingüe en q8 (desvío del contrato)
+CONTEXTO fija `Xenova/all-MiniLM-L6-v2`. Se midió contra `Xenova/paraphrase-multilingual-MiniLM-L12-v2` con `npm run eval:retrieval` (30 preguntas en el dominio, 6 fuera; informes en `services/ai-agent-service/eval/`): hit@4 86,7 % → 96,7 %, MRR 0,78 → 0,90 y coseno medio del ruido fuera de dominio 0,43 → 0,17. Con el modelo en inglés, el mejor umbral posible (0,55) ya sacrificaba recall y aun así 0,30 dejaba pasar el 83 % del ruido. Mismas 384 dimensiones, así que la colección de Qdrant no cambia. Se usa `dtype: q8` (118 MB en vez de 470 MB; cuesta un caso de 30). Trade-off: modelo de 12 capas, más lento que el de 6. `EMBEDDING_MODEL` y `EMBEDDING_DTYPE` permiten volver atrás sin tocar código; si cambia la dimensión, el store recrea la colección.
+
+### 44. Umbral de recuperación 0,35 y piso del modo degradado 0,45
+El umbral 0,30 de la Fase 8 se calibró con datos: con el modelo multilingüe hay una meseta de 0 % de falsos positivos entre 0,25 y 0,40; 0,35 deja margen a ambos lados (peor ruido 0,24; el recall cae a partir de 0,45). El modo degradado solo muestra fragmentos con score ≥ 0,45: por debajo es más honesto un 503 que enseñar texto poco relacionado.
+
+### 45. Imagen Docker sobre Debian slim, modelo horneado (desvío del contrato)
+CONTEXTO pide `node:22-alpine`, pero `onnxruntime-node` trae binarios nativos solo para glibc. El modelo q8 se descarga en el build, así que el primer arranque no necesita internet (arranca en ~3 s). Sin `wget` en slim, el `HEALTHCHECK` usa `node`. Coste: la imagen pesa 1,05 GB (661 MB de `node_modules`, de los que `onnxruntime-node` son 291 MB con los binarios de todas las plataformas).
+
+### 46. Cliente de Qdrant 1.12.0 y `node_modules` anidado
+`@qdrant/js-client-rest` se fija en 1.12.0 para coincidir con el servidor `v1.12.4` del compose (la 1.19 ya no tiene `search`). Por un conflicto de `undici`, npm anida el cliente en `services/ai-agent-service/node_modules`; el runtime copia también ese directorio.
+
+### 47. `MockProvider` como proveedor real de respaldo, con sus límites declarados
+Sin `GEMINI_API_KEY` el servicio arranca con `MockProvider` (contrato) y lo avisa en el log. No es un stub vacío: planifica llamadas a herramientas por palabras clave y redacta citando literalmente los fragmentos recuperados, lo que permite probar de verdad RAG, tools, permisos, citas, calidad, caché y eventos sin key. Limitación: su elección de qué citar es léxica y peor que la de un modelo real; los ejemplos de `docs/05-ejemplos.md` lo declaran y dicen cómo regenerarlos con Gemini. Cada respuesta incluye `metrics.provider` y `metrics.model` para que nunca haya duda de quién la generó.
+
+### 48. Extensiones al contrato de la API
+Aditivas y compatibles con el frontend: `metrics.provider` y `metrics.model`; `sources[].id` (`S#`/`D#`, la etiqueta que cita la respuesta) y `sources[].section`; `conversationId` siempre en la respuesta; `Retry-After` en los 429/503 (lo emite el `ProblemDetailsFilter` de `@toka/common`, con test). Solo se devuelven las fuentes que la respuesta cita. Cierra los supuestos de la §29.
+
+### 49. `ai.query.completed` sin outbox
+No hay Postgres en este servicio ni un cambio de negocio que proteger: la fuente de verdad es `ai_metrics` en Mongo. El evento se publica con confirmación del broker y un tope de 5 s, sin bloquear la respuesta. Si RabbitMQ cae en ese instante, audit-service pierde esa notificación (la métrica no).
+
+### 50. Dependencias opcionales fallan abiertas; el JWT falla cerrado
+Caché, rate limit, métricas, conversaciones y recuperación fallan abiertos: se registra y se responde. El verificador de JWT de `@toka/common` consulta la blacklist en Redis sin captura, así que con Redis caído de forma sostenida toda petición recibe 401, igual que en los demás servicios (no se cambió).
+
+### 51. Pendiente: peso de las imágenes de los otros servicios
+Los `Dockerfile` de auth, user, role y audit hacen `npm ci` de todo el monorepo y copian el `node_modules` completo. Con las dependencias del agente (743 MB en total) sus imágenes crecerán al reconstruirse (hoy 264–333 MB). No se tocaron por estar fuera del alcance de la fase y no se midió el impacto. Solución propuesta: `npm ci -w services/<svc> -w packages/common --include-workspace-root`. Para el agente, se podrían además podar los binarios de `onnxruntime-node` de otras plataformas (~200 MB).

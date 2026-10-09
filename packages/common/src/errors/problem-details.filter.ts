@@ -19,6 +19,8 @@ export type DomainErrorKind =
 export interface DomainErrorLike extends Error {
   code: string;
   kind: DomainErrorKind;
+  /** When present on a 429/503 error, sent to the client as the `Retry-After` header. */
+  retryAfterSeconds?: number;
 }
 
 const STATUS_BY_KIND: Record<DomainErrorKind, number> = {
@@ -66,6 +68,9 @@ export class ProblemDetailsFilter implements ExceptionFilter {
       );
     }
 
+    if (isDomainErrorLike(exception) && typeof exception.retryAfterSeconds === 'number') {
+      response.setHeader('Retry-After', String(exception.retryAfterSeconds));
+    }
     response.status(problem.status).type('application/problem+json').json(problem);
   }
 

@@ -127,28 +127,34 @@ services:
       mongo: { condition: service_healthy }
     networks: [toka-net]
 
-  # ai-agent-service:
-  #   build: { context: ., dockerfile: services/ai-agent-service/Dockerfile }
-  #   environment:
-  #     <<: *service-env
-  #     PORT: 3005
-  #     MONGO_URI: ${MONGO_URI:-mongodb://mongo:27017}/ai
-  #     QDRANT_URL: ${QDRANT_URL:-http://qdrant:6333}
-  #     USER_SERVICE_URL: http://user-service:3002
-  #     ROLE_SERVICE_URL: http://role-service:3003
-  #     AUDIT_SERVICE_URL: http://audit-service:3004
-  #     LLM_PROVIDER: ${LLM_PROVIDER:-gemini}
-  #     GEMINI_API_KEY: ${GEMINI_API_KEY:-}
-  #     GEMINI_MODEL: ${GEMINI_MODEL:-gemini-2.5-flash-lite}
-  #     LLM_RPM_LIMIT: ${LLM_RPM_LIMIT:-8}
-  #     OLLAMA_URL: ${OLLAMA_URL:-http://ollama:11434}
-  #     OLLAMA_MODEL: ${OLLAMA_MODEL:-llama3.2:3b}
-  #   volumes: [hf-cache:/app/.cache] # cache del modelo de embeddings
-  #   depends_on:
-  #     <<: *infra-deps
-  #     mongo: { condition: service_healthy }
-  #     qdrant: { condition: service_healthy }
-  #   networks: [toka-net]
+  ai-agent-service:
+    build: { context: ., dockerfile: services/ai-agent-service/Dockerfile }
+    environment:
+      <<: *service-env
+      PORT: 3005
+      MONGO_URI: ${MONGO_URI:-mongodb://mongo:27017}/ai
+      QDRANT_URL: ${QDRANT_URL:-http://qdrant:6333}
+      USER_SERVICE_URL: http://user-service:3002
+      ROLE_SERVICE_URL: http://role-service:3003
+      AUDIT_SERVICE_URL: http://audit-service:3004
+      LLM_PROVIDER: ${LLM_PROVIDER:-gemini}
+      LLM_FALLBACK_PROVIDER: ${LLM_FALLBACK_PROVIDER:-none}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-2.5-flash-lite}
+      LLM_RPM_LIMIT: ${LLM_RPM_LIMIT:-8}
+      OLLAMA_URL: ${OLLAMA_URL:-http://ollama:11434}
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-llama3.2:3b}
+      AI_RATE_LIMIT_PER_MINUTE: ${AI_RATE_LIMIT_PER_MINUTE:-5}
+      RAG_MIN_SCORE: ${RAG_MIN_SCORE:-0.35}
+      EMBEDDING_MODEL: ${EMBEDDING_MODEL:-Xenova/paraphrase-multilingual-MiniLM-L12-v2}
+      EMBEDDING_DTYPE: ${EMBEDDING_DTYPE:-q8}
+      LLM_PRICING_JSON: ${LLM_PRICING_JSON:-}
+    volumes: [hf-cache:/app/.cache] # modelo de embeddings (la imagen ya lo trae; el volumen evita re-descargas al cambiar de modelo)
+    depends_on:
+      <<: *infra-deps
+      mongo: { condition: service_healthy }
+      qdrant: { condition: service_healthy }
+    networks: [toka-net]
 
   # ---------- Borde ----------
   frontend:
@@ -166,7 +172,7 @@ services:
       - user-service
       - role-service
       - audit-service
-      # - ai-agent-service  # fase 9
+      - ai-agent-service
     networks: [toka-net]
 
   # ---------- Opcional: LLM local sin internet ----------

@@ -8,11 +8,12 @@ class FakeDomainError extends Error {
 
 const handle = (exception: unknown) => {
   const json = jest.fn();
-  const response = { status: jest.fn().mockReturnThis(), type: jest.fn().mockReturnThis(), json };
+  const setHeader = jest.fn();
+  const response = { status: jest.fn().mockReturnThis(), type: jest.fn().mockReturnThis(), json, setHeader };
   const request = { method: 'POST', path: '/x', header: () => 'corr-1' };
   const host = { switchToHttp: () => ({ getRequest: () => request, getResponse: () => response }) };
   new ProblemDetailsFilter().catch(exception, host as never);
-  return { status: response.status.mock.calls[0][0] as number, body: json.mock.calls[0][0] };
+  return { status: response.status.mock.calls[0][0] as number, body: json.mock.calls[0][0], setHeader };
 };
 
 describe('ProblemDetailsFilter', () => {
@@ -37,6 +38,22 @@ describe('ProblemDetailsFilter', () => {
     const { status, body } = handle(new FakeDomainError('Email is already registered'));
     expect(status).toBe(409);
     expect(body).toMatchObject({ type: 'urn:toka:problem:email-already-registered', detail: 'Email is already registered' });
+  });
+
+  it('sends Retry-After when a domain error carries retryAfterSeconds', () => {
+    class RateLimited extends Error {
+      readonly code = 'rate-limited';
+      readonly kind = 'too_many_requests';
+      readonly retryAfterSeconds = 12;
+    }
+    const { status, setHeader } = handle(new RateLimited('Slow down'));
+    expect(status).toBe(429);
+    expect(setHeader).toHaveBeenCalledWith('Retry-After', '12');
+  });
+
+  it('does not send Retry-After for ordinary errors', () => {
+    const { setHeader } = handle(new FakeDomainError('Email is already registered'));
+    expect(setHeader).not.toHaveBeenCalled();
   });
 
   it('hides internals of unexpected errors', () => {

@@ -46,8 +46,12 @@ Con `roles:write` además puedes asignar un rol a un usuario o quitárselo. Recu
 
 ## Auditoría (requiere `audit:read`)
 
+### Filtros y estadísticas
+
 - **Filtros:** tipo de evento, usuario que realizó la acción y rango de fechas.
 - **Tarjetas de estadísticas:** total de eventos, inicios de sesión fallidos y eventos por tipo en el rango elegido.
+
+### Tipos de evento
 
 Tipos de evento más comunes:
 
@@ -62,7 +66,9 @@ Tipos de evento más comunes:
 | `role.created` / `role.permissions.updated` | Alta de rol o cambio de sus permisos. |
 | `ai.query.completed` | Consulta al Asistente IA (solo métricas, nunca el texto de la pregunta). |
 
-Los registros de auditoría se conservan **365 días**.
+### Retención
+
+Los registros de auditoría se conservan **365 días**; después se eliminan automáticamente.
 
 ## Asistente IA (requiere `ai:use`)
 

@@ -1,0 +1,11 @@
+{
+  "currency": "USD",
+  "unit": "per_1m_tokens",
+  "note": "List prices of the paid tier, for capacity planning. Verify against the provider's pricing page; set zeros to report real free-tier cost.",
+  "models": {
+    "gemini-2.5-flash-lite": { "input": 0.1, "cachedInput": 0.025, "output": 0.4 },
+    "gemini-2.5-flash": { "input": 0.3, "cachedInput": 0.075, "output": 2.5 },
+    "llama3.2:3b": { "input": 0, "cachedInput": 0, "output": 0 },
+    "mock": { "input": 0, "cachedInput": 0, "output": 0 }
+  }
+}

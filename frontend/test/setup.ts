@@ -11,6 +11,9 @@ globalThis.Request = class RelativeUrlRequest extends NativeRequest {
   }
 } as typeof Request;
 
+// jsdom does not implement scrolling; the chat page scrolls to the latest message.
+Element.prototype.scrollIntoView = () => undefined;
+
 beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
 afterEach(() => server.resetHandlers());
 afterAll(() => server.close());
