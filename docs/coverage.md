@@ -9,11 +9,13 @@ Es la métrica que valida `npm test -- --coverage`. Cada paquete mide el alcance
 
 | Paquete | Tests | Statements | Branches | Functions | Lines | Reporte |
 |---|---:|---:|---:|---:|---:|---|
-| `@toka/common` | 78 | 94.21% | 87.50% | 80.64% | 94.10% | [index.html](coverage/common/index.html) |
+| `@toka/common` | 80 | 94.23% | 87.74% | 80.64% | 94.13% | [index.html](coverage/common/index.html) |
 | auth-service | 45 | 99.62% | 97.22% | 98.11% | 99.54% | [index.html](coverage/auth-service/index.html) |
 | user-service | 33 | 99.56% | 100% | 97.91% | 99.47% | [index.html](coverage/user-service/index.html) |
 | role-service | 32 | 99.14% | 95.00% | 97.95% | 99.46% | [index.html](coverage/role-service/index.html) |
 | audit-service | 7 | 100% | 93.54% | 100% | 100% | [index.html](coverage/audit-service/index.html) |
+| ai-agent-service | 221 | 97.93% | 90.18% | 96.87% | 98.13% | — |
+| frontend (Jest + RTL) | 29 | 77.48% | 59.01% | 66.08% | 80.00% | — |
 
 ## Alcance real de los servicios (medido, no configurado)
 

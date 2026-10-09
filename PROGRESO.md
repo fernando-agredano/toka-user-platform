@@ -13,6 +13,7 @@
 - [x] Fase 9 – ai-agent-service
 - [x] Fase 10 – Ejercicio 4 (diagnóstico)
 - [x] Fase 11 – Documentación
+- [x] Fase 11.5 – PDF de documentación técnica
 - [ ] Fase 12 – Revisión final
 
 ## Bitácora
@@ -95,6 +96,15 @@
 - **No verificado:** el render del diagrama Mermaid en GitHub (el bloque es idéntico al de `docs/01-arquitectura.md`, pero no se vio renderizado); el arranque de `docker compose up` a partir de un clon limpio.
 - Decisiones: el frontend sigue fuera de los workspaces, así que `test:all` lo instala aparte (`cd frontend && npm ci`). En el frontend, `--verbose` no imprimía los ✓ por test con Jest 30; se añadió `--reporters=default` solo a su invocación (causa de fondo sin investigar). Si un paquete falla, la cadena se corta y no se imprime la tabla.
 - Cómo explicarlo en la entrevista: la guía DDD se apoya en rutas reales y en comprobaciones con grep de las reglas de dependencia, no en descripciones genéricas; el dominio no importa de frameworks ni de SDKs, y la única concesión en `application/` son los decoradores de inyección de NestJS; un caso de uso concreto (crear usuario) muestra cada capa, desde el controlador hasta el `$transaction` que guarda el usuario y su evento de outbox; el umbral de coverage se explica por alcance (dominio y casos de uso), y la tabla resumen muestra también el frontend, que queda más bajo y se declara como tal.
+
+### Fase 11.5
+
+- Entregado: `scripts/build-docs-pdf/` (`npm run docs:pdf`) genera `docs/Documentacion-Tecnica.pdf` (87 páginas, tamaño carta): portada con degradado y SVG, índice con puntos y números de página reales, resumen ejecutivo de una página con 7 tarjetas KPI, 9 secciones con página separadora (numeración automática 1, 1.1, 1.1.1), anexo «Cómo ejecutar el sistema» tomado del README, encabezado con la sección actual y pie «Página X de Y» (la portada no lleva ninguno). Tres gráficos SVG propios (coverage por paquete con umbral de 70 %, latencia y costo del agente, donut de tests), 4 diagramas Mermaid renderizados en local con la paleta, tablas, callouts y código con resaltado (highlight.js). Módulos: `sources` (qué documentos y en qué orden), `data` (KPI y gráficos desde `docs/coverage.md`, `docs/05-ejemplos.md` y `CONTEXTO.md`), `charts`, `markdown`, `layout`, `pdf` y `styles.css`.
+- Verificado: el PDF se genera sin red (Inter y estilos embebidos, Mermaid desde `node_modules`). Los números del índice se calculan renderizando hasta que dejan de moverse (2 pasadas) y ubicando cada título con pdf.js. Revisé capturas de portada, índice, resumen, diagrama, gráficos y tablas grandes, y corregí: resumen que se desbordaba, hexágono sobre el autor, entrada de índice huérfana, rótulos solapados en las gráficas y diagrama de arquitectura ilegible (ahora tiene su propia página horizontal).
+- Datos: `docs/coverage.md` no incluía ai-agent-service ni frontend y tenía `@toka/common` desactualizado; se completó con los reportes de coverage ya existentes y los conteos de Fase 11 (suman 447 tests). El costo por consulta (US$0.00) y la latencia p95 (239 ms) vienen del `MockProvider`, no de Gemini; el PDF lo declara en el resumen y en el pie de las figuras.
+- Decisiones: las tablas y bloques de código que miden menos del 35 % de una página nunca se parten; los más altos pueden partirse por filas o líneas para no dejar páginas medio vacías (conflicto entre dos requisitos). Los números de página se estampan con `pdf-lib` porque Chromium no permite un encabezado distinto por sección. Dependencias nuevas (solo `devDependencies` de la raíz): `playwright`, `mermaid`, `highlight.js`, `@fontsource/inter`, `marked`, `pdf-lib`, `@pdf-lib/fontkit`, `pdfjs-dist`. Las capturas usan `qlmanage` (solo macOS) y son opcionales (`--shots=1,4 --shots-dir=<dir>`).
+- Pendiente: la p.71 (gráfico de latencia al final de la sección 7) queda a media página; los diagramas anchos hacen que la página anterior termine antes. Los enlaces relativos de los documentos se muestran como texto en el PDF.
+- Cómo explicarlo en la entrevista: la documentación sigue siendo la fuente de verdad en Markdown y el PDF es un artefacto reproducible con un comando, no un documento editado a mano; las cifras de los KPI y gráficos se leen de los mismos archivos que describen el sistema, y donde son del mock lo digo en la propia página; el índice con números reales exigió renderizar dos veces y buscar cada título en el PDF, porque el paginado solo se conoce al final; ante dos requisitos en conflicto (no cortar tablas / no dejar páginas vacías) fijé una regla medible en vez de resolverlo caso por caso; y revisé el resultado mirando capturas, lo que destapó problemas que el log no mostraba, como un diagrama con el texto a 3 px.
 
 ## Pendientes / notas
 

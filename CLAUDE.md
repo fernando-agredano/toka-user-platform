@@ -22,6 +22,9 @@ Estado actual del trabajo:
 - No muestres el contenido de los archivos que escribes; solo lista qué archivos creaste o modificaste.
 - Respuestas finales breves: qué se hizo, qué falta y cómo verificarlo (máximo 10 líneas).
 - Si un error persiste tras 3 intentos, detente y explícame el problema en vez de seguir probando.
+- NUNCA ejecutes comandos que no terminan en primer plano: nada de `npm run dev`, `npm start`, `docker compose up` sin `-d`, `logs -f` ni Jest en modo watch. Para tests usa siempre `CI=true npm test`.
+- En cada fase corre solo los tests del servicio que tocaste, una vez al final, no después de cada archivo.
+- Solo levanta Docker en las fases que lo piden explícitamente (4, 6 y 9).
 
 ## Al terminar cada fase
 
@@ -31,20 +34,20 @@ Estado actual del trabajo:
 
 ## Commits por fase
 
-| Fase | Mensaje de commit |
-|---|---|
-| 0-1 | `chore: initial context and architecture` |
-| 2 | `feat(auth): add monorepo setup, common package and auth-service` |
-| 3 | `feat(user,role): add user-service and role-service` |
-| 4 | `feat(audit): add audit-service, gateway and infra config` |
-| 5 | `test: increase backend unit test coverage above 70%` |
-| 6 | `feat(frontend): add React app with RTK Query and protected routes` |
-| 7 | `test(frontend): add component and state tests` |
-| 8 | `docs(ai): add prompt engineering strategy and knowledge base` |
-| 9 | `feat(ai): add RAG agent service with evaluation and rate limiting` |
-| 10 | `docs: add production incident diagnosis (exercise 4)` |
-| 11 | `docs: add READMEs and DDD/Clean Architecture guide` |
-| 12 | `chore: final review fixes` |
+| Fase | Mensaje de commit                                                   |
+| ---- | ------------------------------------------------------------------- |
+| 0-1  | `chore: initial context and architecture`                           |
+| 2    | `feat(auth): add monorepo setup, common package and auth-service`   |
+| 3    | `feat(user,role): add user-service and role-service`                |
+| 4    | `feat(audit): add audit-service, gateway and infra config`          |
+| 5    | `test: increase backend unit test coverage above 70%`               |
+| 6    | `feat(frontend): add React app with RTK Query and protected routes` |
+| 7    | `test(frontend): add component and state tests`                     |
+| 8    | `docs(ai): add prompt engineering strategy and knowledge base`      |
+| 9    | `feat(ai): add RAG agent service with evaluation and rate limiting` |
+| 10   | `docs: add production incident diagnosis (exercise 4)`              |
+| 11   | `docs: add READMEs and DDD/Clean Architecture guide`                |
+| 12   | `chore: final review fixes`                                         |
 
 ## Comandos útiles
 
