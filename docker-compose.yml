@@ -1,0 +1,189 @@
+name: toka-user-platform
+
+x-service-env: &service-env
+  NODE_ENV: ${NODE_ENV:-development}
+  LOG_LEVEL: ${LOG_LEVEL:-info}
+  REDIS_URL: ${REDIS_URL:-redis://redis:6379}
+  RABBITMQ_URL: ${RABBITMQ_URL:-amqp://toka:toka_dev_pwd@rabbitmq:5672}
+  AUTH_JWKS_URL: ${AUTH_JWKS_URL:-http://auth-service:3001/api/auth/.well-known/jwks.json}
+  JWT_ISSUER: ${JWT_ISSUER:-toka-auth}
+  JWT_AUDIENCE: ${JWT_AUDIENCE:-toka-api}
+  INTERNAL_API_KEY: ${INTERNAL_API_KEY:-change_me_internal}
+
+x-infra-deps: &infra-deps
+  redis: { condition: service_healthy }
+  rabbitmq: { condition: service_healthy }
+
+services:
+  # ---------- Infraestructura ----------
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-toka}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-toka_dev_pwd}
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+      - ./infra/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-toka}"]
+      interval: 5s
+      retries: 10
+    networks: [toka-net]
+
+  mongo:
+    image: mongo:7
+    volumes: [mongo-data:/data/db]
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      retries: 10
+    networks: [toka-net]
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes: [redis-data:/data]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      retries: 10
+    networks: [toka-net]
+
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    environment:
+      RABBITMQ_DEFAULT_USER: toka
+      RABBITMQ_DEFAULT_PASS: toka_dev_pwd
+      RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS: -rabbitmq_management load_definitions "/etc/rabbitmq/definitions.json"
+    volumes:
+      - ./infra/rabbitmq/definitions.json:/etc/rabbitmq/definitions.json:ro
+      - rabbit-data:/var/lib/rabbitmq
+    ports: ["15672:15672"] # consola de administración (solo debug)
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "check_port_connectivity"]
+      interval: 10s
+      retries: 10
+    networks: [toka-net]
+
+  qdrant:
+    image: qdrant/qdrant:v1.12.4
+    volumes: [qdrant-data:/qdrant/storage]
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c ':> /dev/tcp/127.0.0.1/6333' || exit 1"]
+      interval: 10s
+      retries: 10
+    networks: [toka-net]
+
+  # ---------- Microservicios ----------
+  auth-service:
+    build: { context: ., dockerfile: services/auth-service/Dockerfile }
+    environment:
+      <<: *service-env
+      PORT: 3001
+      DATABASE_URL: postgresql://${POSTGRES_USER:-toka}:${POSTGRES_PASSWORD:-toka_dev_pwd}@postgres:5432/auth_db
+      ROLE_SERVICE_URL: http://role-service:3003
+      JWT_KEYS_DIR: /keys
+      SEED_ADMIN_EMAIL: ${SEED_ADMIN_EMAIL:-admin@toka.local}
+      SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:-Admin123!}
+    volumes: [auth-keys:/keys]
+    depends_on:
+      <<: *infra-deps
+      postgres: { condition: service_healthy }
+    networks: [toka-net]
+
+  user-service:
+    build: { context: ., dockerfile: services/user-service/Dockerfile }
+    environment:
+      <<: *service-env
+      PORT: 3002
+      DATABASE_URL: postgresql://${POSTGRES_USER:-toka}:${POSTGRES_PASSWORD:-toka_dev_pwd}@postgres:5432/user_db
+      AUTH_SERVICE_URL: http://auth-service:3001
+    depends_on:
+      <<: *infra-deps
+      postgres: { condition: service_healthy }
+      auth-service: { condition: service_healthy }
+    networks: [toka-net]
+
+  role-service:
+    build: { context: ., dockerfile: services/role-service/Dockerfile }
+    environment:
+      <<: *service-env
+      PORT: 3003
+      DATABASE_URL: postgresql://${POSTGRES_USER:-toka}:${POSTGRES_PASSWORD:-toka_dev_pwd}@postgres:5432/role_db
+    depends_on:
+      <<: *infra-deps
+      postgres: { condition: service_healthy }
+    networks: [toka-net]
+
+  audit-service:
+    build: { context: ., dockerfile: services/audit-service/Dockerfile }
+    environment:
+      <<: *service-env
+      PORT: 3004
+      MONGO_URI: ${MONGO_URI:-mongodb://mongo:27017}/audit
+    depends_on:
+      <<: *infra-deps
+      mongo: { condition: service_healthy }
+    networks: [toka-net]
+
+  ai-agent-service:
+    build: { context: ., dockerfile: services/ai-agent-service/Dockerfile }
+    environment:
+      <<: *service-env
+      PORT: 3005
+      MONGO_URI: ${MONGO_URI:-mongodb://mongo:27017}/ai
+      QDRANT_URL: ${QDRANT_URL:-http://qdrant:6333}
+      USER_SERVICE_URL: http://user-service:3002
+      ROLE_SERVICE_URL: http://role-service:3003
+      AUDIT_SERVICE_URL: http://audit-service:3004
+      LLM_PROVIDER: ${LLM_PROVIDER:-gemini}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-2.5-flash-lite}
+      LLM_RPM_LIMIT: ${LLM_RPM_LIMIT:-8}
+      OLLAMA_URL: ${OLLAMA_URL:-http://ollama:11434}
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-llama3.2:3b}
+    volumes: [hf-cache:/app/.cache] # cache del modelo de embeddings
+    depends_on:
+      <<: *infra-deps
+      mongo: { condition: service_healthy }
+      qdrant: { condition: service_healthy }
+    networks: [toka-net]
+
+  # ---------- Borde ----------
+  frontend:
+    build: { context: ., dockerfile: frontend/Dockerfile }
+    networks: [toka-net]
+
+  gateway:
+    image: nginx:1.27-alpine
+    volumes:
+      - ./infra/gateway/nginx.conf:/etc/nginx/nginx.conf:ro
+    ports: ["8080:8080"]
+    depends_on:
+      - frontend
+      - auth-service
+      - user-service
+      - role-service
+      - audit-service
+      - ai-agent-service
+    networks: [toka-net]
+
+  # ---------- Opcional: LLM local sin internet ----------
+  ollama:
+    image: ollama/ollama:latest
+    profiles: [local-llm]
+    volumes: [ollama-data:/root/.ollama]
+    networks: [toka-net]
+
+networks:
+  toka-net:
+
+volumes:
+  pg-data:
+  mongo-data:
+  redis-data:
+  rabbit-data:
+  qdrant-data:
+  auth-keys:
+  hf-cache:
+  ollama-data:
