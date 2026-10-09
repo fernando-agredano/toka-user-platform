@@ -11,7 +11,7 @@
 - [x] Fase 7 – Tests frontend (Haiku)
 - [x] Fase 8 – Diseño IA
 - [x] Fase 9 – ai-agent-service
-- [ ] Fase 10 – Ejercicio 4 (diagnóstico)
+- [x] Fase 10 – Ejercicio 4 (diagnóstico)
 - [ ] Fase 11 – Documentación
 - [ ] Fase 12 – Revisión final
 
@@ -80,6 +80,13 @@
 - **No verificado:** (1) `GeminiProvider` nunca habló con la API real: no había `GEMINI_API_KEY`; solo está probado con un cliente falso. Todos los ejemplos son del `MockProvider`. (2) `OllamaProvider` nunca corrió contra un Ollama. (3) El script Lua de la cuota global de RPM nunca se ejecutó contra Redis porque el mock no consume cuota. (4) La cadena de fallback y el 429 por límite de usuario solo están probados con dobles, no de extremo a extremo.
 - Decisiones: `docs/decisiones.md` (Fase 9, §43-51). Desvíos del contrato: modelo de embeddings multilingüe q8 (con datos), imagen Debian slim en vez de Alpine, cliente de Qdrant 1.12.0. Extensiones aditivas a la respuesta de `/api/ai/chat`.
 - Cómo explicarlo en la entrevista: el agente nunca tiene más permisos que quien pregunta, porque cada tool reenvía el JWT del usuario y el servicio dueño del dato decide; el prompt es una segunda barrera, no la primera. Cambié el modelo de embeddings del contrato porque lo medí: con el de inglés, preguntas sin relación con la plataforma puntuaban 0,50 de coseno y no había umbral que separara bien; el multilingüe sube hit@4 de 87 % a 97 % y deja una meseta de 0 % de falsos positivos. La resiliencia es por capas (cuota global compartida, backoff que respeta el `retryDelay` de Gemini, breaker, proveedor de respaldo y por último modo degradado con los fragmentos citados), y solo hay dos errores explícitos: 429 y 503. Cada respuesta lleva coste calculado desde una tabla configurable, un score de calidad verificable sin pagar un segundo LLM, y quién la generó; por eso puedo decir con honestidad que los ejemplos son del mock y qué prueban.
+
+### Fase 10
+
+- Entregado: `docs/04-diagnostico.md` (Ejercicio 4): 10 hipótesis priorizadas con probabilidad e impacto, plan de diagnóstico a 5/15/30 min, consultas `docker compose logs` + `jq` con su equivalente LogQL/KQL (filtrando por servicio, nivel y `correlationId`), revisión de `/api/ai/metrics` con descomposición de latencia, mitigaciones inmediatas vs. correcciones de fondo, plantillas de comunicación (inicial, cada 30 min, cierre), sección de fallos en cascada (5 escenarios con detección y contención) y plantilla de postmortem.
+- Verificado: los nombres de campos de log, mensajes, umbrales del breaker, reintentos del consumidor, colas y campos de `MetricsSummary` se contrastaron con el código. **No verificado:** las consultas no se ejecutaron contra un incidente real; las de Loki/Elastic son de referencia; el nombre de la colección de métricas en Mongo (`ai_metrics`) debe confirmarse con `getCollectionNames()`; el comportamiento exacto de auth con Redis caído está marcado como «verificar».
+- Brecha detectada y documentada: `/api/ai/metrics` no expone tasa de 429 (solo `degradedRate`); `outbox_events` no se purga. Quedan como acciones del postmortem, sin tocar código (fuera del alcance de la fase).
+- Cómo explicarlo en la entrevista: razono el incidente desde las cuatro dependencias compartidas (Postgres, RabbitMQ, Redis, Gemini) y priorizo por la hipótesis que explica varios síntomas a la vez; el `correlationId` es la herramienta central: si aparece en el emisor y no en los consumidores, el fallo es de propagación asíncrona y no de la petición; distingo mitigación (reversible, minutos) de corrección de fondo; y explico qué contiene cada cascada (timeout + breaker, outbox, DLQ, caché de permisos, modo degradado del agente) y qué no, como los usuarios «a medias» que solo se curan al drenar el outbox.
 
 ## Pendientes / notas
 
