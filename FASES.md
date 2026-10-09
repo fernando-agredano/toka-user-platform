@@ -26,7 +26,7 @@ Fase 4. Implementa services/audit-service (consumer de todos los eventos con ide
 ## Fase 5 – Tests backend ≥70% · `/model haiku`
 
 ```
-Fase 5. Ejecuta npm test -- --coverage en cada servicio y en packages/common. Donde el coverage sea menor a 70%, agrega tests unitarios (casos de uso, entidades, VOs, guards, filtros) usando repos en memoria y mocks. No cambies el código de producción salvo bugs evidentes. Genera coverage/ en cada servicio y un resumen en docs/coverage.md con la tabla de porcentajes.
+Fase 5. Ejecuta npm test -- --coverage en cada servicio y en packages/common. Donde el coverage sea menor a 70%, agrega tests unitarios (casos de uso, entidades, VOs, guards, filtros) usando repos en memoria y mocks. No cambies el código de producción salvo bugs evidentes. Genera coverage/ en cada servicio. Además copia el reporte HTML de cada servicio a docs/coverage/<servicio>/ (esa carpeta sí se versiona) y pon en docs/coverage.md la tabla con los porcentajes y los links a cada reporte.
 ```
 Si Haiku se atora con mocks complejos (Prisma, amqplib), cambia a `/model sonnet` solo para ese servicio.
 
@@ -51,23 +51,50 @@ Fase 8 (solo diseño, no implementes código del servicio). Escribe docs/05-prom
 ## Fase 9 – ai-agent-service · `/model sonnet`
 
 ```
-Fase 9. Implementa services/ai-agent-service según CONTEXTO.md y docs/05-prompt-engineering.md: puerto LlmProvider con GeminiProvider (@google/genai, function calling), OllamaProvider y MockProvider (selección por LLM_PROVIDER; si no hay GEMINI_API_KEY usa Mock con warning). Pipeline de embeddings local (@huggingface/transformers, all-MiniLM-L6-v2) → Qdrant, con ingesta al arrancar si la colección está vacía y por POST /api/ai/ingest. Tools que llaman a user, role y audit con el JWT del usuario. Rate limit por usuario en Redis, limitador global por RPM, retry exponencial ante 429, breaker con degradación a respuesta solo-RAG, cache de respuestas. Evaluador que mide latencia, tokens, costo y quality score y lo guarda en Mongo; GET /api/ai/metrics. Publica ai.query.completed. Tests con MockProvider. Descomenta el servicio en compose y prueba 3 preguntas de ejemplo: una de RAG, una con tool de usuarios y una de auditoría. Guarda las respuestas reales en docs/05-ejemplos.md.
+Fase 9. Implementa services/ai-agent-service según CONTEXTO.md y docs/05-prompt-engineering.md: puerto LlmProvider con GeminiProvider (@google/genai, function calling), OllamaProvider y MockProvider (selección por LLM_PROVIDER; si no hay GEMINI_API_KEY usa Mock con warning). Pipeline de embeddings local (@huggingface/transformers, all-MiniLM-L6-v2) → Qdrant, con ingesta al arrancar si la colección está vacía y por POST /api/ai/ingest. Tools que llaman a user, role y audit con el JWT del usuario. Rate limit por usuario en Redis, limitador global por RPM, retry exponencial ante 429, breaker con degradación a respuesta solo-RAG, cache de respuestas. Evaluador que mide latencia, tokens, costo y quality score y lo guarda en Mongo; GET /api/ai/metrics. Publica ai.query.completed. Tests con MockProvider. Descomenta el servicio en compose y prueba 3 preguntas de ejemplo: una de RAG, una con tool de usuarios y una de auditoría. Guarda las respuestas reales en docs/05-ejemplos.md. Escribe también docs/05-integracion.md: cómo se integra el agente con los microservicios existentes (diagrama de secuencia Mermaid de una consulta con tool call, propagación del JWT, eventos que publica, qué pasa si un servicio está caído).
 ```
 
 ## Fase 10 – Ejercicio 4 · `/model sonnet`
 
 ```
-Fase 10. Escribe docs/04-diagnostico.md respondiendo el Ejercicio 4 (falla: no se guardan registros, errores 500 en algunos servicios, alta latencia del agente IA) aterrizado a NUESTRA arquitectura: hipótesis priorizadas con probabilidad e impacto (Postgres con pool agotado o disco lleno, outbox bloqueado, RabbitMQ con memory alarm, breaker abierto entre auth y role, Redis caído, JWKS inaccesible, rate limit 429 de Gemini, contexto RAG inflado), plan de diagnóstico en los primeros 5, 15 y 30 minutos, consultas concretas sobre nuestros logs JSON filtrando por correlationId, nivel y servicio (ejemplos con docker compose logs + jq y su equivalente en Loki o Elastic), revisión de /api/ai/metrics (p95, tokens, costo, tasa de 429), mitigaciones inmediatas frente a correcciones de fondo, plantilla de comunicación a stakeholders (inicial, cada 30 min y cierre) y un postmortem breve.
+Fase 10. Escribe docs/04-diagnostico.md respondiendo el Ejercicio 4 (falla: no se guardan registros, errores 500 en algunos servicios, alta latencia del agente IA) aterrizado a NUESTRA arquitectura: hipótesis priorizadas con probabilidad e impacto (Postgres con pool agotado o disco lleno, outbox bloqueado, RabbitMQ con memory alarm, breaker abierto entre auth y role, Redis caído, JWKS inaccesible, rate limit 429 de Gemini, contexto RAG inflado), plan de diagnóstico en los primeros 5, 15 y 30 minutos, consultas concretas sobre nuestros logs JSON filtrando por correlationId, nivel y servicio (ejemplos con docker compose logs + jq y su equivalente en Loki o Elastic), revisión de /api/ai/metrics (p95, tokens, costo, tasa de 429), mitigaciones inmediatas frente a correcciones de fondo, plantilla de comunicación a stakeholders (inicial, cada 30 min y cierre) y un postmortem breve. Dedica una sección explícita a fallos en cascada: cómo un problema en Postgres o RabbitMQ se propaga a otros servicios en nuestra arquitectura, cómo lo detectas en los logs (correlationId cruzando servicios) y qué mecanismos lo contienen (timeouts, breakers, DLQ, fallback a cache).
 ```
 
 ## Fase 11 – Documentación · `/model haiku`
 
 ```
-Fase 11. Escribe README.md en la raíz (descripción, diagrama embebido de docs/01-arquitectura.md, requisitos, cómo obtener la GEMINI_API_KEY gratis o usar LLM_PROVIDER=mock u ollama, docker compose up, credenciales del admin, URLs, cómo correr los tests y ver el coverage, índice de docs/ que mapee cada entregable de la prueba a su archivo) y un README.md corto en cada servicio y en frontend. Agrega docs/02-ddd-clean-architecture.md explicando con ejemplos REALES del código (rutas de archivos) cómo se aplicaron DDD y Clean Architecture.
+Fase 11. Escribe README.md en la raíz (descripción, diagrama embebido de docs/01-arquitectura.md, requisitos, cómo obtener la GEMINI_API_KEY gratis o usar LLM_PROVIDER=mock u ollama, docker compose up, credenciales del admin, URLs, cómo correr los tests y ver el coverage, índice de docs/ que mapee cada entregable de la prueba a su archivo) y un README.md corto en cada servicio. El frontend/README.md debe incluir: cómo ejecutarlo en desarrollo (npm run dev con proxy al gateway) y con Docker, y una sección "State management" que explique la estructura del store (slices, RTK Query, refresh automático de token) con rutas de archivos. Agrega docs/02-ddd-clean-architecture.md explicando con ejemplos REALES del código (rutas de archivos) cómo se aplicaron DDD y Clean Architecture.
 ```
 
 ## Fase 12 – Revisión final · `/model opus`
 
 ```
-Fase 12. Revisa el repositorio contra TODOS los criterios de evaluación de la prueba técnica (ejercicios 1 a 5 y entregables esperados). No leas todo el código: usa el árbol de carpetas, PROGRESO.md, los docs y muestras representativas. Entrega una tabla de criterio | cumple / parcial / falta | evidencia (archivo) | acción, y corrige solo los huecos de alto impacto que sean rápidos. Finalmente prepárame 10 preguntas probables de entrevista sobre este proyecto con respuestas cortas.
+Fase 12. Usa docs/REQUISITOS.md como checklist. Revisa el repositorio contra TODOS los criterios de evaluación de la prueba técnica (ejercicios 1 a 5 y entregables esperados). No leas todo el código: usa el árbol de carpetas, PROGRESO.md, los docs y muestras representativas. Entrega una tabla de criterio | cumple / parcial / falta | evidencia (archivo) | acción, y corrige solo los huecos de alto impacto que sean rápidos. Marca cada punto de docs/REQUISITOS.md con su evidencia. Verifica que .env no esté versionado ni exista ningún secreto en el historial de git (busca GEMINI_API_KEY con un valor). Luego genera el entregable comprimido con: git archive --format=zip -o ../toka-user-platform.zip HEAD. Finalmente prepárame 10 preguntas probables de entrevista sobre este proyecto con respuestas cortas.
 ```
+
+---
+
+## Cierre de cada fase
+
+Si al terminar Claude no actualizó PROGRESO.md o no hizo commit, pega esto (cambia X y el mensaje):
+
+```
+Cierra la Fase X: actualiza PROGRESO.md (marca la fase como completada y agrega en la Bitácora lo entregado, las decisiones tomadas y 3-5 líneas de "Cómo explicarlo en la entrevista"). Luego haz git add . y commit con el mensaje: "<mensaje de la tabla>". Responde solo con la confirmación.
+```
+
+| Fase | Mensaje de commit |
+|---|---|
+| 0-1 | `chore: initial context and architecture` |
+| 2 | `feat(auth): add monorepo setup, common package and auth-service` |
+| 3 | `feat(user,role): add user-service and role-service` |
+| 4 | `feat(audit): add audit-service, gateway and infra config` |
+| 5 | `test: increase backend unit test coverage above 70%` |
+| 6 | `feat(frontend): add React app with RTK Query and protected routes` |
+| 7 | `test(frontend): add component and state tests` |
+| 8 | `docs(ai): add prompt engineering strategy and knowledge base` |
+| 9 | `feat(ai): add RAG agent service with evaluation and rate limiting` |
+| 10 | `docs: add production incident diagnosis (exercise 4)` |
+| 11 | `docs: add READMEs and DDD/Clean Architecture guide` |
+| 12 | `chore: final review fixes` |
+
+Revisa siempre PROGRESO.md antes de hacer `/clear`.

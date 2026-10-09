@@ -57,3 +57,9 @@ export const EVENT_PUBLISHER = Symbol('EVENT_PUBLISHER');
 export interface EventPublisherPort {
   publish(event: DomainEvent): Promise<void>;
 }
+
+export const PERMISSIONS_CACHE_INVALIDATOR = Symbol('PERMISSIONS_CACHE_INVALIDATOR');
+export interface PermissionsCacheInvalidator {
+  invalidateUser(userId: string): Promise<void>;
+  invalidateAll(): Promise<void>;
+}

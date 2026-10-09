@@ -8,7 +8,8 @@ import type { AuthConfig } from '../config/auth-config';
 export const ROLE_HTTP_CLIENT = Symbol('ROLE_HTTP_CLIENT');
 
 const CACHE_TTL_SECONDS = 60 * 60;
-const cacheKey = (userId: string) => `auth:permissions:${userId}`;
+export const PERMISSIONS_CACHE_PREFIX = 'auth:permissions:';
+const cacheKey = (userId: string) => `${PERMISSIONS_CACHE_PREFIX}${userId}`;
 
 export const createRoleHttpClient = (config: AuthConfig) =>
   new ResilientHttpClient({

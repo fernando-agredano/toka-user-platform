@@ -98,6 +98,7 @@ services:
       PORT: 3002
       DATABASE_URL: postgresql://${POSTGRES_USER:-toka}:${POSTGRES_PASSWORD:-toka_dev_pwd}@postgres:5432/user_db
       AUTH_SERVICE_URL: http://auth-service:3001
+      SEED_ADMIN_EMAIL: ${SEED_ADMIN_EMAIL:-admin@toka.local}
     depends_on:
       <<: *infra-deps
       postgres: { condition: service_healthy }

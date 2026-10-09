@@ -3,6 +3,7 @@ export * from './auth/guards';
 export * from './auth/jwt-auth.module';
 export * from './auth/jwt-verifier.service';
 export * from './auth/redis.module';
+export * from './auth/self-or-permission';
 export * from './bootstrap';
 export * from './config/env';
 export * from './correlation/correlation-context';

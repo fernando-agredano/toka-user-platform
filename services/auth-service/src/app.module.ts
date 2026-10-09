@@ -16,6 +16,7 @@ import {
   ACCESS_TOKEN_ISSUER,
   EVENT_PUBLISHER,
   LOGIN_ATTEMPT_TRACKER,
+  PERMISSIONS_CACHE_INVALIDATOR,
   PASSWORD_HASHER,
   PERMISSIONS_PROVIDER,
   REFRESH_TOKEN_STORE,
@@ -24,6 +25,7 @@ import {
 import { SessionIssuer } from './application/services/session-issuer';
 import { ChangeCredentialStatusUseCase } from './application/use-cases/change-credential-status.use-case';
 import { CreateCredentialInternalUseCase } from './application/use-cases/create-credential-internal.use-case';
+import { InvalidatePermissionsCacheUseCase } from './application/use-cases/invalidate-permissions-cache.use-case';
 import { LoginUseCase } from './application/use-cases/login.use-case';
 import { LogoutUseCase } from './application/use-cases/logout.use-case';
 import { RefreshUseCase } from './application/use-cases/refresh.use-case';
@@ -31,11 +33,13 @@ import { RegisterUseCase } from './application/use-cases/register.use-case';
 import { SeedAdminUseCase } from './application/use-cases/seed-admin.use-case';
 import { CREDENTIAL_REPOSITORY } from './domain/repositories/credential.repository';
 import { RedisLoginAttemptTracker } from './infrastructure/cache/redis-login-attempt-tracker';
+import { RedisPermissionsCacheInvalidator } from './infrastructure/cache/redis-permissions-cache-invalidator';
 import { RedisRefreshTokenStore } from './infrastructure/cache/redis-refresh-token-store';
 import { RedisTokenBlacklist } from './infrastructure/cache/redis-token-blacklist';
 import { AUTH_CONFIG, AuthConfig, loadAuthConfig } from './infrastructure/config/auth-config';
 import { ROLE_HTTP_CLIENT, RolePermissionsGateway, createRoleHttpClient } from './infrastructure/http/role-permissions-gateway';
 import { OutboxEventPublisher } from './infrastructure/messaging/outbox-event-publisher';
+import { RoleChangedConsumer } from './infrastructure/messaging/role-changed.consumer';
 import { UserActivatedConsumer, UserDeactivatedConsumer } from './infrastructure/messaging/user-status.consumers';
 import { PersistenceModule } from './infrastructure/persistence/persistence.module';
 import { PrismaCredentialRepository } from './infrastructure/persistence/prisma-credential.repository';
@@ -80,6 +84,7 @@ import { InternalCredentialsController } from './presentation/controllers/intern
     { provide: TOKEN_BLACKLIST, useClass: RedisTokenBlacklist },
     { provide: LOGIN_ATTEMPT_TRACKER, useClass: RedisLoginAttemptTracker },
     { provide: PERMISSIONS_PROVIDER, useClass: RolePermissionsGateway },
+    { provide: PERMISSIONS_CACHE_INVALIDATOR, useClass: RedisPermissionsCacheInvalidator },
     { provide: EVENT_PUBLISHER, useClass: OutboxEventPublisher },
     RsaKeyStore,
     SessionIssuer,
@@ -89,11 +94,13 @@ import { InternalCredentialsController } from './presentation/controllers/intern
     RefreshUseCase,
     LogoutUseCase,
     ChangeCredentialStatusUseCase,
+    InvalidatePermissionsCacheUseCase,
     SeedAdminUseCase,
     SeedAdminBootstrap,
     OutboxRelayService,
     UserDeactivatedConsumer,
     UserActivatedConsumer,
+    RoleChangedConsumer,
   ],
 })
 export class AppModule {}

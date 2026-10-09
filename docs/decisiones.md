@@ -35,3 +35,34 @@ CONTEXTO solo pide consumir `user.deactivated` (revocar refresh tokens). Sin má
 - La invalidación de la caché de permisos de auth ante `role.*` (CONTEXTO §6) queda para la Fase 3, cuando existan esos eventos.
 - Casos de uso y DTOs usan decoradores de Nest (`@Injectable`, class-validator) en `application/`; la regla "sin Nest" se aplica estrictamente solo a `domain/`.
 - El workspace `frontend` se añadirá a `workspaces` en la Fase 6. Node local es 20; Docker usa 22 (`engines: >=20`).
+
+## Fase 3
+
+### 10. Creación de usuario por admin: credenciales primero, perfil después
+`POST /api/users` valida el email contra la BD local (falla rápido), crea las credenciales en auth (`/internal/credentials`, sin reintentos al no ser idempotente) y luego guarda el perfil + `user.created`. Si el guardado falla, auth ya publicó `auth.user.registered` y el consumidor de user-service crea el perfil (autocuración). Si el consumidor gana la carrera, `CreateUserUseCase` conserva su perfil y no emite `user.created` dos veces.
+
+### 11. Mutaciones idempotentes sin evento espurio
+`User.deactivate/activate/updateProfile` y `Role.replacePermissions` devuelven si el estado cambió; solo entonces se guarda y se publica el evento. Así reintentos de HTTP o de consumidores no ensucian la auditoría. Re-asignar un rol ya asignado es no-op; quitar uno no asignado devuelve 404.
+
+### 12. Último ADMIN: pre-chequeo en el caso de uso + recheck bajo lock
+`Role.assertRevocable(holders)` es la regla de dominio. El caso de uso la comprueba (fallo rápido y testeable) y `PrismaRoleRepository.revoke` la repite dentro de una transacción con `SELECT … FOR UPDATE` sobre la fila del rol, de modo que dos revocaciones concurrentes no pueden dejar el sistema sin admin. Verificado contra Postgres real.
+
+### 13. Catálogo cerrado de permisos y ADMIN inmutable
+Los permisos válidos son los de CONTEXTO §5 (`users:read|write`, `roles:read|write`, `audit:read`, `ai:use`); un typo en un rol falla con 400 en vez de conceder nada en silencio. Los permisos de `ADMIN` no se pueden modificar (403), para que nadie se auto-bloquee. Añadir permisos nuevos requiere tocar `PERMISSION_CATALOG`. Los nombres de rol se normalizan a mayúsculas (`^[A-Z][A-Z0-9_]{1,49}$`) y son inmutables.
+
+### 14. Permisos: relación en tabla propia y caché sin vacíos
+`role_permissions(role_id, permission)` en lugar de un array, para poder consultar y mantener integridad referencial. `GET /internal/users/:id/permissions` devuelve listas vacías (no 404) sin asignaciones; ese resultado **no se cachea** (`perms:{userId}`, TTL 600 s), porque el rol `USER` se asigna de forma asíncrona tras el registro y un vacío cacheado retrasaría los permisos hasta 10 min. La caché se invalida al asignar/revocar (usuario) y al cambiar permisos de un rol (todos sus titulares).
+
+### 15. Semillas sin eventos y orden de arranque
+Role-service siembra `ADMIN/MANAGER/USER` y la asignación del admin fijo en `OnModuleInit` (antes de que los consumidores se suscriban en `OnApplicationBootstrap`), para que el primer `auth.user.registered` encuentre el rol `USER`. Nunca pisa roles existentes y tolera réplicas concurrentes (probado con dos seeds en paralelo). User-service siembra el perfil admin (`SEED_ADMIN_EMAIL`, añadido al compose). Ninguna semilla emite eventos, igual que en auth.
+
+### 16. Desvío del contrato: consumer de auth para `role.*`
+CONTEXTO §6 pide que auth invalide su caché de permisos ante `role.*`. Se añadió la cola `auth.role-changed` (routing keys `role.assigned`, `role.revoked`, `role.permissions.updated`; `role.created` no afecta a nadie). Con `userId` borra solo ese usuario; sin él (`permissions.updated`) hace `SCAN` + `DEL` de `auth:permissions:*`. Trade-off: tras un cambio de roles no se puede puentear una caída de role-service con permisos antiguos (login → 503), que es lo seguro. **Fase 4**: añadir `auth.role-changed` a `rabbitmq/definitions.json`.
+
+### 17. Utilidad compartida y duplicación consciente
+`assertSelfOrPermission` (endpoints «propio o permiso») vive en `@toka/common` porque la usan user y role. `DomainError`, `outbox-record`, `PrismaService` y `PersistenceModule` se replican por servicio (como en auth): el dominio no puede importar `@toka/common` y cada servicio genera su propio cliente Prisma.
+
+### 18. Límites conocidos
+- role-service no valida que `userId` exista (no tiene datos de usuarios): asignar roles a un UUID inexistente crea una fila huérfana inocua.
+- PATCH de usuario solo cambia `firstName/lastName`; cambiar el email requeriría sincronizar auth y queda fuera de alcance.
+- Caché `user:{id}` e invalidación son best-effort: tras `deactivate` otra réplica puede servir hasta una lectura previa a la invalidación (TTL 300 s como cota).
