@@ -13,6 +13,7 @@
 - [x] Fase 9 – ai-agent-service
 - [x] Fase 10 – Ejercicio 4 (diagnóstico)
 - [x] Fase 11 – Documentación
+- [x] Fase 11.2 – Documentación del frontend (Ejercicio 3)
 - [x] Fase 11.5 – PDF de documentación técnica
 - [ ] Fase 12 – Revisión final
 
@@ -96,6 +97,14 @@
 - **No verificado:** el render del diagrama Mermaid en GitHub (el bloque es idéntico al de `docs/01-arquitectura.md`, pero no se vio renderizado); el arranque de `docker compose up` a partir de un clon limpio.
 - Decisiones: el frontend sigue fuera de los workspaces, así que `test:all` lo instala aparte (`cd frontend && npm ci`). En el frontend, `--verbose` no imprimía los ✓ por test con Jest 30; se añadió `--reporters=default` solo a su invocación (causa de fondo sin investigar). Si un paquete falla, la cadena se corta y no se imprime la tabla.
 - Cómo explicarlo en la entrevista: la guía DDD se apoya en rutas reales y en comprobaciones con grep de las reglas de dependencia, no en descripciones genéricas; el dominio no importa de frameworks ni de SDKs, y la única concesión en `application/` son los decoradores de inyección de NestJS; un caso de uso concreto (crear usuario) muestra cada capa, desde el controlador hasta el `$transaction` que guarda el usuario y su evento de outbox; el umbral de coverage se explica por alcance (dominio y casos de uso), y la tabla resumen muestra también el frontend, que queda más bajo y se declara como tal.
+
+### Fase 11.2
+
+- Entregado: `docs/03-frontend.md` (Ejercicio 3) con resumen de stack y justificación, pantallas con capturas, state management (store, tags de RTK Query, refresh single-flight, token en memoria) con fragmento de código, tabla pantalla → endpoint → servicio, diagrama de secuencia Mermaid del login con refresh por el gateway, UX, tests y ejecución. 8 capturas PNG en `docs/img/frontend/` (login, inicio, usuarios, roles, auditoría, asistente, error de validación y estado de carga) tomadas con Playwright como admin. `frontend/README.md` reducido a un resumen con enlace al documento.
+- Verificado: stack levantado con `docker compose up -d`, capturas revisadas a ojo (validación, carga, asistente, usuarios); `npm run test:coverage` del frontend: 29 tests, 77.48 % statements, 59.01 % branches, 66.08 % functions, 80 % lines. Contenedores detenidos con `docker compose down`.
+- **No verificado:** el render del diagrama Mermaid en GitHub; las capturas de inicio, roles y auditoría no se revisaron visualmente una a una. La respuesta del asistente en la captura es del `MockProvider`.
+- Incidencia: el gateway tenía IPs cacheadas de contenedores recreados y devolvía 502; se resolvió con `docker compose restart gateway` (nginx resuelve los upstreams solo al arrancar).
+- Cómo explicarlo en la entrevista: elegí Vite + SPA porque es una app privada tras login, sin SEO ni SSR; RTK Query centraliza caché, etiquetas de invalidación y el reintento ante 401, así que las pantallas no repiten esa lógica; el access token vive solo en memoria y la sesión se restaura con la cookie httpOnly, y como el refresh rota y su reutilización se trata como robo, todas las peticiones concurrentes comparten una única promesa de refresh; los permisos en la UI son solo UX y una tabla de navegación alimenta menú, inicio y guards; las capturas salen del stack real con Playwright, y declaro cuáles son del mock.
 
 ### Fase 11.5
 
