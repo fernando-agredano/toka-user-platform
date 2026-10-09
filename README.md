@@ -150,7 +150,7 @@ npm run test:all
 
 `npm run test:all` ejecuta con `CI=true` los tests de `packages/common`, de los cinco servicios y del frontend, con `--verbose` (cada test aparece con ✓) y `--coverage`. Al final imprime una tabla con el coverage de cada paquete.
 
-Resultado de la última ejecución verificada: **447 tests pasando, 0 fallos**; coverage de statements entre 77 % (frontend, incluye componentes fuera del alcance) y 100 % (audit-service). El detalle de qué mide cada umbral está en [docs/coverage.md](docs/coverage.md).
+Resultado de la última ejecución verificada: **499 tests pasando, 0 fallos**; coverage de statements entre 77 % (frontend, incluye componentes fuera del alcance) y 100 % (audit-service). El detalle de qué mide cada umbral está en [docs/coverage.md](docs/coverage.md).
 
 Reporte HTML de cada paquete (se genera con `test:all`):
 
@@ -158,7 +158,7 @@ Reporte HTML de cada paquete (se genera con `test:all`):
 - `packages/common/coverage/index.html`
 - `frontend/coverage/index.html`
 
-Una copia versionada de esos reportes, de los 7 paquetes, está en [docs/coverage/](docs/coverage/).
+Una copia versionada de esos reportes, de los 8 paquetes (los 7 originales y mcp-server), está en [docs/coverage/](docs/coverage/).
 
 Para un solo servicio: `npm test -w services/auth-service -- --coverage`.
 
@@ -200,13 +200,23 @@ Para un solo servicio: `npm test -w services/auth-service -- --coverage`.
 | Decisiones (ADRs cortos) por fase | [docs/decisiones.md](docs/decisiones.md) |
 | Cobertura del backend y su alcance | [docs/coverage.md](docs/coverage.md) |
 
+## Extras
+
+Módulos adicionales que no forman parte de los entregables de la prueba.
+
+| Extra | Archivo |
+|---|---|
+| Servidor MCP: expone la plataforma a Claude Desktop, Claude Code y Cursor con los permisos del usuario (tools, resources, prompts, confirmación de acciones destructivas y auditoría) | [docs/06-mcp-server.md](docs/06-mcp-server.md) y [services/mcp-server/](services/mcp-server/) |
+
+Se conecta con `claude mcp add --transport http toka http://localhost:8080/mcp --header "Authorization: Bearer <token>"`.
+
 ## Estructura del repositorio
 
 ```
 ├─ docker-compose.yml     stack completo (servicios, datos, gateway, frontend)
 ├─ infra/                 gateway nginx, init.sql de Postgres, definiciones de RabbitMQ
 ├─ packages/common/       @toka/common: logger, JWT, outbox, consumers, filtros de error
-├─ services/              los 5 microservicios (Clean Architecture por servicio)
+├─ services/              los 5 microservicios + mcp-server, módulo extra (Clean Architecture por servicio)
 ├─ frontend/              SPA React + Redux Toolkit
 ├─ scripts/               resumen de coverage de test:all
 └─ docs/                  documentación técnica

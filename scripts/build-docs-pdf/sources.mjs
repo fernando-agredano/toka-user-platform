@@ -61,6 +61,13 @@ export const SECTIONS = [
     charts: [{ name: 'latency' }],
   },
   {
+    key: 'mcp',
+    title: 'Extra: servidor MCP',
+    description: 'Módulo adicional, fuera de los requisitos: expone la plataforma a asistentes de IA con los permisos del usuario.',
+    file: 'docs/06-mcp-server.md',
+    extra: true,
+  },
+  {
     key: 'coverage',
     title: 'Cobertura de tests',
     description: 'Cobertura por paquete, distribución de tests y alcance realmente medido.',

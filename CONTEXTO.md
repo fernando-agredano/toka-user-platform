@@ -264,3 +264,20 @@ Si `GEMINI_API_KEY` está vacío, el servicio arranca con `MockProvider` y lo re
 | 10 | Ejercicio 4 (diagnóstico) | Sonnet |
 | 11 | READMEs | Haiku |
 | 12 | Revisión final contra rúbrica | Opus |
+
+## 11. MCP Server (módulo extra)
+
+Servidor Model Context Protocol (`@modelcontextprotocol/sdk` 1.x) que expone la plataforma a asistentes de IA (Claude Desktop, Claude Code, Cursor). No es requisito de la prueba. Detalle en `docs/06-mcp-server.md`.
+
+| Servicio | Contexto | Datos | Responsabilidad |
+|---|---|---|---|
+| mcp-server (3006) | AI Integration | Redis (rate limit); sin BD propia | Traduce llamadas MCP a llamadas REST con el JWT del usuario |
+
+- **Transportes:** Streamable HTTP sin sesión (`POST /mcp`, puerto 3006, expuesto en el gateway como `/mcp` con `proxy_buffering off`) y stdio (`dist/stdio.js`, para uso local; usa `TOKA_ACCESS_TOKEN` y `TOKA_API_URL`).
+- **Auth:** `Authorization: Bearer <JWT>` validado con JWKS (`JwtVerifier` de `@toka/common`, incluye blacklist). Cada tool reenvía ese mismo JWT; el servicio dueño del dato decide.
+- **Tools de lectura** (`readOnlyHint`): `search_users` (users:read), `get_user` (users:read), `get_user_roles` (roles:read), `list_roles` (roles:read), `get_audit_events` (audit:read), `get_audit_stats` (audit:read), `ask_knowledge_base` (ai:use, usa `POST /api/ai/chat`).
+- **Tools de escritura:** `assign_role` (roles:write), `activate_user` (users:write); destructivas (`destructiveHint`) `revoke_role` (roles:write) y `deactivate_user` (users:write): exigen `confirm: true`, sin él devuelven una vista previa y no cambian nada.
+- **Resources:** `toka://docs/{nombre}` (documentos de `services/ai-agent-service/knowledge`) y `toka://me` (perfil, roles y permisos del usuario).
+- **Prompts:** `security-review` (argumento opcional `hours`, 24 por defecto) y `access-audit`.
+- **Gobierno:** cada invocación publica `mcp.tool.invoked` (`data`: `tool`, `arguments` redactados, `outcome` = `success|preview|error|denied|rate_limited`, `errorKind?`, `durationMs`, `userId`, `transport`; `actor` con `userId` e `ip`) consumido por audit-service; rate limit 30 llamadas/min por usuario en Redis (`mcp:rl:{userId}`); los errores se devuelven como resultado MCP con `isError: true`, sin stack traces.
+- **Variables:** `PORT=3006`, `USER_SERVICE_URL`, `ROLE_SERVICE_URL`, `AUDIT_SERVICE_URL`, `AI_SERVICE_URL` (o un único `TOKA_API_URL` fuera de Docker), `MCP_RATE_LIMIT_PER_MINUTE=30`, `MCP_ALLOWED_ORIGINS`, `KNOWLEDGE_DIR`.

@@ -83,8 +83,12 @@ function parseExamples() {
 const countEndpoints = () =>
   (readSource('CONTEXTO.md').match(/^\| (GET|POST|PUT|PATCH|DELETE) \|/gm) ?? []).length;
 
+// Extra modules (not part of the exam's five microservices) are listed in docs/ but not counted here.
+const EXTRA_SERVICES = new Set(['mcp-server']);
 const countServices = () =>
-  readdirSync(join(ROOT, 'services'), { withFileTypes: true }).filter((entry) => entry.isDirectory()).length;
+  readdirSync(join(ROOT, 'services'), { withFileTypes: true }).filter(
+    (entry) => entry.isDirectory() && !EXTRA_SERVICES.has(entry.name),
+  ).length;
 
 export function loadMetrics() {
   const coverage = parseCoverage();

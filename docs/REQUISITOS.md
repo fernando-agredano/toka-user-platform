@@ -151,3 +151,5 @@ Evaluación
 - [x] Front-end: código, state management, tests — `frontend/`, `docs/03-frontend.md`; CI en `.github/workflows/frontend.yml`
 - [x] Análisis: respuesta del ejercicio 4 — `docs/04-diagnostico.md`
 - [x] Documento consolidado — `docs/Documentacion-Tecnica.pdf`
+
+Extra: servidor MCP (docs/06-mcp-server.md)

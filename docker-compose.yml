@@ -156,6 +156,21 @@ services:
       qdrant: { condition: service_healthy }
     networks: [toka-net]
 
+  mcp-server:
+    build: { context: ., dockerfile: services/mcp-server/Dockerfile }
+    environment:
+      <<: *service-env
+      PORT: 3006
+      USER_SERVICE_URL: http://user-service:3002
+      ROLE_SERVICE_URL: http://role-service:3003
+      AUDIT_SERVICE_URL: http://audit-service:3004
+      AI_SERVICE_URL: http://ai-agent-service:3005
+      MCP_RATE_LIMIT_PER_MINUTE: ${MCP_RATE_LIMIT_PER_MINUTE:-30}
+      MCP_ALLOWED_ORIGINS: ${MCP_ALLOWED_ORIGINS:-http://localhost:8080}
+    depends_on:
+      <<: *infra-deps
+    networks: [toka-net]
+
   # ---------- Borde ----------
   frontend:
     build: { context: ., dockerfile: frontend/Dockerfile }
@@ -173,6 +188,7 @@ services:
       - role-service
       - audit-service
       - ai-agent-service
+      - mcp-server
     networks: [toka-net]
 
   # ---------- Opcional: LLM local sin internet ----------

@@ -186,3 +186,27 @@ auth-service emite access tokens JWT RS256 con los claims de OIDC (`iss`, `aud`,
 
 ### 53. CI con GitHub Actions
 Dos workflows: `backend.yml` (build de todos los workspaces y tests con el umbral de 70 % de cada `jest.config.ts`) y `frontend.yml` (lint, typecheck de tests, tests y build), porque el frontend no es workspace y tiene su propio lockfile. Corren en `master` y `main`. No incluyen deploy ni tests de integración con el stack Docker.
+
+## Fase 11.8 (módulo extra: MCP server)
+
+### 54. mcp-server sin NestJS ni inyección por tokens (desvío del contrato)
+CONTEXTO pide Clean Architecture con inyección vía tokens de Nest. Aquí la capa `presentation` la dicta el SDK de MCP (el transporte HTTP y stdio son suyos) y el modo stdio se ejecuta con `npx` en la máquina del usuario, donde levantar un contenedor de Nest no aporta nada. Se mantiene la regla de dependencias (`domain` sin imports de framework; `application` solo conoce puertos y `zod`) y la inyección es por constructor, ensamblada en `composition-root.ts`. `@toka/common` se reutiliza igual: `createLogger`, `CorrelationIdMiddleware`, `JwtVerifier`, `ResilientHttpClient`, `EventPublisher` y `createEnvelope` se instancian a mano.
+
+### 55. Servidor MCP sin estado y una instancia por petición
+Con `sessionIdGenerator: undefined` cada `POST /mcp` crea su `McpServer` ligado al `Caller` verificado de esa petición. Así un token jamás se reutiliza para otro usuario, se escala horizontalmente sin sticky sessions y el gateway no necesita afinidad. Coste: no hay notificaciones iniciadas por el servidor (GET/DELETE `/mcp` responden 405), que esta plataforma no necesita.
+
+### 56. Autorización en dos niveles
+El `ToolRunner` rechaza antes de llamar si el token no trae los permisos de la tool (mensaje claro para el asistente y evento `denied`), y el servicio dueño del dato los vuelve a comprobar con el mismo JWT. El pre-chequeo es una optimización de UX; la barrera real sigue siendo downstream.
+
+### 57. Confirmación de las destructivas en el servidor, no en el cliente
+`deactivate_user` y `revoke_role` devuelven una vista previa salvo `confirm: true`, además de `destructiveHint` para que el cliente pida aprobación. Límite honesto: un modelo puede pasar `confirm: true` por su cuenta; la defensa real es el aviso al usuario (clientes como Claude Code piden aprobación de cada tool), los permisos del token y el invariante de último ADMIN en role-service.
+
+### 58. `mcp.tool.invoked` sin outbox y rate limit con ventana fija
+Como en §49, no hay BD propia: el evento se publica en segundo plano con confirmación y tope de 5 s, y una caída de RabbitMQ pierde ese registro (los cambios reales siguen auditados por user-service y role-service). El límite de 30/min es una ventana fija con script Lua (INCR + PEXPIRE atómicos); permite un pico de hasta 2× en el borde de la ventana, aceptable para este uso y más simple que el token bucket del agente. Si Redis falla, el limitador falla abierto con un warning; el JWT verifier, en cambio, falla cerrado (§50).
+
+### 59. stdio: gobierno reducido y token decodificado
+En stdio no hay acceso a Redis ni a RabbitMQ: el rate limit es en memoria por proceso y no se publica `mcp.tool.invoked`. El JWT solo se decodifica para saber quién llama (no se confía en él: cada servicio verifica la firma). El access token dura 15 min, así que hay que renovar `TOKA_ACCESS_TOKEN`; la solución de fondo es OAuth 2.1 (ver `docs/06-mcp-server.md`).
+
+### 60. Versión del SDK y compilación
+`@modelcontextprotocol/sdk` se fija en 1.30.1 (la 1.31+ tiene menos de dos semanas). El servicio compila con `module: node16` porque el SDK expone sus rutas mediante `exports`, que `moduleResolution: node` no resuelve. En los tests ts-jest corre con `isolatedModules` (los tipos genéricos de zod del SDK agotaban la memoria al comprobar tipos en Jest); los tipos se verifican con `npm run typecheck -w services/mcp-server`.
+
