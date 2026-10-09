@@ -85,3 +85,26 @@ Los upstreams de API se resuelven al arrancar (el `depends_on` del compose los g
 - `HEALTHCHECK` con `wget http://localhost`: en Alpine `localhost` resuelve a `::1` y la app escucha en IPv4, así que quedaba `unhealthy`. Ahora usa `127.0.0.1` en los cuatro servicios.
 - Las imágenes runtime de user y role no tenían `openssl` y Prisma no podía ejecutar `migrate deploy`. Se añadió `apk add openssl` al stage runtime.
 - `frontend` y `ai-agent-service` están comentados en el compose y en el `depends_on` del gateway hasta las fases 6 y 9.
+
+## Fase 6
+
+### 24. Frontend como paquete independiente (desvío del contrato)
+`CONTEXTO.md` lista `frontend` en los workspaces. Se deja **fuera**: los Dockerfiles de los servicios hacen `npm ci` con el `package-lock.json` raíz y solo copian `packages/` y `services/`, así que un workspace extra rompería sus builds (el lockfile referenciaría una carpeta ausente). El frontend tiene su propio `package.json` y lockfile (Patrón B), y su Dockerfile instala solo lo suyo. Consecuencia: `npm run build/test` de la raíz no lo incluye; se ejecuta con `cd frontend && npm run build`.
+
+### 25. Sesión: token en memoria, refresh single-flight y 401 → reintento
+El `accessToken` vive solo en el slice `auth` (nunca en `localStorage`). Al cargar la app se llama a `/auth/refresh` (cookie httpOnly) **fuera de React**, de modo que StrictMode no dispara dos refresh. El refresh rota en cada uso y el backend trata la reutilización como robo, así que `refreshSession()` comparte una única promesa entre todos los llamadores: dos 401 simultáneos producen un solo refresh y ambas peticiones se reintentan (verificado en navegador). Si el refresh falla se limpia la sesión, se resetea la caché de RTK Query (para no filtrar datos al siguiente usuario) y el guard redirige a `/login`. `login`, `register` y `refresh` no disparan reintento: su 401 son credenciales inválidas.
+
+### 26. Errores y feedback
+Un `listenerMiddleware` convierte todo `rejectedWithValue` en un toast con el `detail` de ProblemDetails (más `errors[]` de validación, si existen). Un error de «sesión expirada» se omite para no mostrar ruido justo antes de redirigir. Los éxitos usan `useToast().success`. Las mutaciones usan `if ('error' in result) return;` en lugar de `try/catch`, porque el toast de error ya salió del listener.
+
+### 27. Permisos en UI y rutas
+`NAV_ITEMS` (`routes/navigation.tsx`) es la única fuente para sidebar, tarjetas de inicio y rutas protegidas: cada ruta lleva su permiso y `RequirePermission` muestra «Acceso restringido» (no redirige). Es solo UX: la autorización real sigue en el backend. Los botones de escritura (crear, editar, activar, asignar, quitar) se ocultan sin `*:write`.
+
+### 28. Gateway: `/api/` desconocido responde 404; frontend en 8080
+Sin esto, `/api/ai/chat` caía en `location /` y devolvía el `index.html` del SPA. Se añade `location /api/ { return 404; }` (los prefijos más largos de cada servicio siguen ganando). El frontend usa `nginxinc/nginx-unprivileged` (usuario no-root, CONTEXTO §9), que escucha en 8080, por lo que el upstream del gateway pasa de `frontend:80` a `frontend:8080`. El nginx del frontend añade CSP (`default-src 'self'`), `X-Frame-Options: DENY` y `nosniff`; los assets con hash se cachean un año y `index.html` es `no-cache`.
+
+### 29. Asistente IA preparado para la Fase 9
+La página y el cliente RTK (`POST /api/ai/chat`) siguen el contrato de CONTEXTO §5. Si el servicio no existe (404/405/502/503/504 o respuesta no JSON) se muestra un aviso en la página y un toast claro. **Supuestos a revisar en la Fase 9:** la forma de `sources[]` (`title|source`, `score`, `snippet`), de `quality.checks`, y un `conversationId` opcional en la respuesta (el contrato solo lo define en la petición).
+
+### 30. Estructura de carpetas y límites conocidos
+Se sigue el árbol del Patrón B, pero solo con las carpetas que se usan (`assets/` y `themes/` no existen: los tokens viven en `index.css`/`tailwind.config.ts`). El store y los endpoints RTK viven en `api/` (el patrón no tiene `store/`). Textos de la UI en español; código en inglés. Sin librería de iconos ni de componentes, para no añadir dependencias. Roles: la página lista el catálogo y gestiona asignaciones, pero no crea roles ni edita permisos (fuera del alcance pedido, aunque la API lo permite). Para elegir usuario en Roles hace falta `users:read` (no existe un endpoint «usuarios por rol»).

@@ -151,9 +151,9 @@ services:
   #   networks: [toka-net]
 
   # ---------- Borde ----------
-  # frontend:
-  #   build: { context: ., dockerfile: frontend/Dockerfile }
-  #   networks: [toka-net]
+  frontend:
+    build: { context: ., dockerfile: frontend/Dockerfile }
+    networks: [toka-net]
 
   gateway:
     image: nginx:1.27-alpine
@@ -161,7 +161,7 @@ services:
       - ./infra/gateway/nginx.conf:/etc/nginx/nginx.conf:ro
     ports: ["8080:8080"]
     depends_on:
-      # - frontend  # fase 6
+      - frontend
       - auth-service
       - user-service
       - role-service

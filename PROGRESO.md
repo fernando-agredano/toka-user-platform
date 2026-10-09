@@ -7,7 +7,7 @@
 - [x] Fase 3 – user-service + role-service
 - [x] Fase 4 – audit-service + infra + compose funcional
 - [x] Fase 5 – Tests backend ≥70%
-- [ ] Fase 6 – Frontend
+- [x] Fase 6 – Frontend
 - [ ] Fase 7 – Tests frontend
 - [ ] Fase 8 – Diseño IA
 - [ ] Fase 9 – ai-agent-service
@@ -51,8 +51,16 @@
 - Decisiones: el umbral solo mide `domain/` y `application/` (y `infrastructure/http` en algunos servicios). Medido sobre `src/**` completo, auth queda en 48%, audit en 52%, role en 64% y user en 67%. No se cambió la configuración; queda como decisión pendiente (`docs/coverage.md`).
 - Cómo explicarlo en la entrevista: el 70% se mide sobre el dominio y los casos de uso, que es donde un bug cuesta datos; la idempotencia y la DLQ del consumidor se prueban con mocks del canal AMQP, no solo en el stack real; la cobertura alta no oculta el alcance: documentamos qué quedó fuera y por qué, en lugar de subir el número con tests de Prisma o Mongoose contra mocks.
 
+### Fase 6
+
+- Entregado: `frontend/` (React 18 + Vite + TS estricto + Redux Toolkit/RTK Query + react-hook-form + zod + Tailwind, con tokens del design system y modo oscuro). Páginas: Login, Registro, Inicio, Usuarios (búsqueda con debounce, filtro de estado, paginación, crear, editar, activar/desactivar con confirmación), Roles (catálogo, asignar y quitar por usuario), Auditoría (filtros + tarjetas de stats + eventos por tipo) y Asistente IA (chat con respuesta, fuentes, herramientas, métricas y calidad; aviso claro mientras el servicio no exista). Rutas protegidas por permiso, skeletons, toasts con el `detail` de ProblemDetails y toasts de éxito. `frontend/Dockerfile` multi-stage (node → nginx-unprivileged, no-root, HEALTHCHECK), `frontend` activo en el compose y el gateway; `/api/` desconocido ahora responde 404.
+- Verificado: `npm run build` (tsc estricto + vite) y `biome check` sin errores en el frontend; el stack completo queda healthy y `localhost:8080` sirve el SPA con fallback de rutas, CSP y cabeceras. Recorrido real en Chrome headless contra el gateway: login inválido (toast con detail) → login → las 4 secciones con datos reales → recarga restaura la sesión por cookie → logout. Refresh automático: con 401 forzado en dos peticiones simultáneas sale **un solo** `/auth/refresh`, ambas se reintentan y la UI se recupera sin toasts; con refresh fallido vuelve a `/login`. También en navegador: contraseña débil bloqueada en cliente, crear/editar/desactivar/reactivar usuario y asignar/quitar rol (con el usuario de prueba `e2e…@toka.local` que quedó en la BD de desarrollo). No hay tests automatizados todavía (Fase 7).
+- Decisiones: `docs/decisiones.md` (Fase 6, §24-30). Desvíos del contrato: el frontend **no** es workspace de npm (rompería el `npm ci` de los Dockerfiles de servicios); el nginx del frontend escucha en 8080 y el gateway apunta a `frontend:8080`.
+- Cómo explicarlo en la entrevista: el access token solo vive en memoria y la sesión se restaura con la cookie httpOnly de refresh, evitando XSS sobre el token; como el refresh rota y su reutilización se trata como robo, el cliente comparte una única promesa de refresh entre peticiones concurrentes (lo probé forzando dos 401 a la vez); los errores del backend llegan como RFC 7807 y un solo listener los convierte en toasts, así que ninguna pantalla repite manejo de errores; los permisos en la UI son solo UX y una única tabla de navegación alimenta sidebar, inicio y guards; la página del asistente se construyó contra el contrato antes de que exista el servicio y degrada con un aviso en vez de romper.
+
 ## Pendientes / notas
 
-- Fase 6: al crear `frontend/Dockerfile`, descomentar `frontend` en el compose y en el `depends_on` del gateway. Fase 9: lo mismo con `ai-agent-service` y su `location /api/ai/` + upstream en nginx.conf.
+- Fase 9: descomentar `ai-agent-service` en el compose y en el `depends_on` del gateway, y añadir su `location /api/ai/` + upstream en nginx.conf (hoy `/api/ai/*` responde 404). Revisar que `sources[]`, `quality.checks` y `conversationId` coincidan con los tipos de `frontend/src/@types/api.ts` (ver `docs/decisiones.md` §29).
+- El frontend no está en los workspaces: su CI (Fase 12/ci-cd) debe tener un job propio con `cd frontend && npm ci && npm run lint && npm run build`.
 - Cobertura de servicios sobre `src/**` completo: pendiente decidir si el umbral debe medir también presentación e infraestructura (ver `docs/coverage.md`). Hoy la infraestructura de audit solo se prueba con el stack real.
 - El puerto 3001 de esta máquina estaba ocupado por otro proceso durante el smoke test (se usó 13001); no afecta a Docker.
