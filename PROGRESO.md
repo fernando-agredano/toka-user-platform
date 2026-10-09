@@ -18,6 +18,7 @@
 - [x] Fase 11.6 – Sección de frontend en el PDF
 - [x] Fase 11.8 – Servidor MCP (módulo extra, no requerido)
 - [x] Fase 12 – Revisión final
+- [x] Fase 12.1 – Revisión posterior al módulo MCP
 
 ## Bitácora
 
@@ -137,6 +138,13 @@
 - Verificado: `npm run build` raíz OK; tests de los 6 workspaces con coverage pasan (80 + 221 + 7 + 45 + 32 + 33); frontend `lint`, `typecheck:test`, 29 tests y `build` OK. Sin `.env` versionado; el historial no contiene ninguna `GEMINI_API_KEY` con valor (el único `AIza…` es una llave falsa en un test de redacción de PII). Entregable `../toka-user-platform.zip` generado con `git archive`.
 - **No verificado:** los workflows no se han ejecutado en GitHub (no hay remoto); se probaron sus mismos comandos en local.
 - Cómo explicarlo en la entrevista: la revisión final se hizo contra la rúbrica con evidencia por archivo, no de memoria; donde algo no está probado (Gemini real, consultas del diagnóstico) lo declaro como parcial en vez de marcarlo como hecho; el CI replica exactamente lo que verifiqué en local y separa frontend y backend porque tienen lockfiles distintos.
+
+### Fase 12.1
+
+- Entregado: revisión de lo añadido tras la Fase 12. PDF regenerado (110 páginas): secciones 1-8 en orden (arquitectura, DDD, frontend, diagnóstico, prompt engineering, integración, ejemplos, MCP), índice con 2 pasadas estables. `docs/preguntas-entrevista-mcp.md` con 4 preguntas sobre el servidor MCP.
+- Verificado: README enlaza `docs/03-frontend.md` y `docs/06-mcp-server.md`; compose y gateway incluyen `mcp-server`; REQUISITOS.md tiene la línea del extra MCP; `docs/coverage.md` incluye mcp-server (52 tests); `npm run test:all` sale con código 0; `.env` no está versionado y el historial no contiene ninguna `GEMINI_API_KEY` con valor (solo `tu_clave` y una llave falsa en un test).
+- Nota: las 10 preguntas de la Fase 12 solo se entregaron en el chat y no quedaron en ningún archivo del repo, así que las 4 de MCP se guardaron en un documento nuevo en vez de «junto a las otras».
+- Cómo explicarlo en la entrevista: cerré con una revisión de solo el delta, comprobando la evidencia (índice del PDF, tests, historial de git) en vez de dar por buena la fase anterior; y fui explícito en lo que no pude cumplir al pie de la letra.
 
 ## Pendientes / notas
 
