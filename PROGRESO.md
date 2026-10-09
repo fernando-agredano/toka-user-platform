@@ -8,7 +8,7 @@
 - [x] Fase 4 – audit-service + infra + compose funcional
 - [x] Fase 5 – Tests backend ≥70%
 - [x] Fase 6 – Frontend
-- [ ] Fase 7 – Tests frontend
+- [x] Fase 7 – Tests frontend (Haiku)
 - [ ] Fase 8 – Diseño IA
 - [ ] Fase 9 – ai-agent-service
 - [ ] Fase 10 – Ejercicio 4 (diagnóstico)
@@ -58,9 +58,17 @@
 - Decisiones: `docs/decisiones.md` (Fase 6, §24-30). Desvíos del contrato: el frontend **no** es workspace de npm (rompería el `npm ci` de los Dockerfiles de servicios); el nginx del frontend escucha en 8080 y el gateway apunta a `frontend:8080`.
 - Cómo explicarlo en la entrevista: el access token solo vive en memoria y la sesión se restaura con la cookie httpOnly de refresh, evitando XSS sobre el token; como el refresh rota y su reutilización se trata como robo, el cliente comparte una única promesa de refresh entre peticiones concurrentes (lo probé forzando dos 401 a la vez); los errores del backend llegan como RFC 7807 y un solo listener los convierte en toasts, así que ninguna pantalla repite manejo de errores; los permisos en la UI son solo UX y una única tabla de navegación alimenta sidebar, inicio y guards; la página del asistente se construyó contra el contrato antes de que exista el servicio y degrada con un aviso en vez de romper.
 
+### Fase 7
+
+- Entregado: Jest 30 + React Testing Library + MSW 2 en `frontend/` (`jest.config.mjs`, `tsconfig.test.json`, `test/` con setup, servidor MSW, render con providers reales y fixtures). 26 tests en 5 suites: login (validación sin petición, sesión en el store, detail de ProblemDetails y error sin cuerpo), registro (validación y requisitos de contraseña, éxito con redirección, correo duplicado), slice de auth (reducers y selectores), lista de usuarios (esqueleto de carga, datos, error con reintento, vacío, acciones según `users:write`) y guard `RequirePermission` (permitido, denegado, reacción a cambios de sesión y a logout). Scripts: `npm test`, `npm run test:coverage`, `npm run typecheck:test`.
+- Verificado: `npm test` 26/26; `npm run lint` y `typecheck:test` sin errores; `npm run build` correcto. Cobertura global 74.9 % de statements (incluye componentes fuera del alcance); login, registro y slice de auth al 100 %, lista de usuarios al 67 %.
+- Decisiones: `docs/decisiones.md` (Fase 7, §31-36). Desvíos: `@swc/jest` en lugar de ts-jest porque MSW 2.x trae dependencias solo ESM; MSW fijado a 2.15.0 (3.x tiene menos de dos semanas); `jest-fixed-jsdom` para exponer `fetch` de Node en jsdom. Sin umbral de cobertura global.
+- Deuda declarada: el refresh single-flight de `base-query.ts` y los guards `RequireAuth`/`GuestOnly` no tienen tests todavía. Es la siguiente prioridad por ser el flujo de sesión más sensible.
+- Cómo explicarlo en la entrevista: los formularios se prueban contra HTTP real simulado con MSW, así que el test verifica el contrato y el mensaje que llega del servidor, no un mock de hooks; la validación de cliente con zod se verifica por ausencia de peticiones; la protección de rutas se prueba como estado, reaccionando a `sessionStarted` y `sessionCleared` en vez de simular el router; y la cobertura se reporta por flujo crítico, no como número global.
+
 ## Pendientes / notas
 
 - Fase 9: descomentar `ai-agent-service` en el compose y en el `depends_on` del gateway, y añadir su `location /api/ai/` + upstream en nginx.conf (hoy `/api/ai/*` responde 404). Revisar que `sources[]`, `quality.checks` y `conversationId` coincidan con los tipos de `frontend/src/@types/api.ts` (ver `docs/decisiones.md` §29).
-- El frontend no está en los workspaces: su CI (Fase 12/ci-cd) debe tener un job propio con `cd frontend && npm ci && npm run lint && npm run build`.
+- El frontend no está en los workspaces: su CI (Fase 12/ci-cd) debe tener un job propio con `cd frontend && npm ci && npm run lint && npm run typecheck:test && npm test && npm run build`.
 - Cobertura de servicios sobre `src/**` completo: pendiente decidir si el umbral debe medir también presentación e infraestructura (ver `docs/coverage.md`). Hoy la infraestructura de audit solo se prueba con el stack real.
 - El puerto 3001 de esta máquina estaba ocupado por otro proceso durante el smoke test (se usó 13001); no afecta a Docker.

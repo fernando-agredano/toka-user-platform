@@ -108,3 +108,24 @@ La página y el cliente RTK (`POST /api/ai/chat`) siguen el contrato de CONTEXTO
 
 ### 30. Estructura de carpetas y límites conocidos
 Se sigue el árbol del Patrón B, pero solo con las carpetas que se usan (`assets/` y `themes/` no existen: los tokens viven en `index.css`/`tailwind.config.ts`). El store y los endpoints RTK viven en `api/` (el patrón no tiene `store/`). Textos de la UI en español; código en inglés. Sin librería de iconos ni de componentes, para no añadir dependencias. Roles: la página lista el catálogo y gestiona asignaciones, pero no crea roles ni edita permisos (fuera del alcance pedido, aunque la API lo permite). Para elegir usuario en Roles hace falta `users:read` (no existe un endpoint «usuarios por rol»).
+
+## Fase 7
+
+### 31. Tests del frontend fuera de `src/`
+Los tests viven en `frontend/test/` y no en `src/`: el `tsconfig.json` de la app incluye `src` con `types: ["vite/client"]`, así que colocar tests allí rompería `tsc` del build. `tsconfig.test.json` extiende la base y añade los tipos de Jest (`npm run typecheck:test`). Así el build de producción no cambia.
+
+### 32. Transformador SWC en lugar de ts-jest
+Se usa `@swc/jest` porque MSW 2.x y sus dependencias (`rettime`, `until-async`, `@open-draft/*`) publican solo ESM, y ts-jest no las transpila sin tocar la configuración de cada una. `transformIgnorePatterns` deja pasar esos paquetes a SWC. Coste: SWC no hace type-check en los tests; el tipado se verifica con `npm run typecheck:test`.
+
+### 33. MSW fijado a 2.15.0 y `jest-fixed-jsdom`
+- MSW 3.x (publicado el 3 de octubre de 2026) se descartó por la regla de no usar versiones de menos de dos semanas.
+- `jest-fixed-jsdom` aporta `fetch`, `Request` y `Response` de Node dentro de jsdom; RTK Query los necesita y el entorno jsdom por defecto no los trae.
+
+### 34. URLs relativas en tests
+RTK Query construye `new Request('/api/…')`, y el `Request` de Node rechaza URLs relativas (en el navegador se resuelven contra la página). El shim en `test/setup.ts` las resuelve contra la `location` de jsdom. No se toca `API_BASE_URL` de producción.
+
+### 35. Store singleton y reset entre tests
+El store de la app es un singleton de módulo (con sus listeners de toasts y de limpieza de caché). `renderWithProviders` lo reinicia antes de cada test (`resetApiState`, toasts y sesión) en lugar de refactorizar `store.ts` a una factoría, que sería un cambio de producción fuera del alcance de la fase.
+
+### 36. Sin umbral de cobertura en el frontend
+Se reporta cobertura pero no se fuerza un umbral global: el objetivo de CLAUDE.md es señal sobre flujos críticos, no cobertura total. Login, registro y slice de auth quedan al 100 % de statements; la lista de usuarios al 67 % (faltan los modales de alta/edición y la confirmación de activar/desactivar); `RequirePermission` está cubierto. Quedan sin cubrir el refresh single-flight de `base-query.ts` y los guards `RequireAuth`/`GuestOnly`: se anotan como deuda, no se incluyen en esta fase.
