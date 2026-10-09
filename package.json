@@ -6,7 +6,8 @@
   "workspaces": ["packages/*", "services/*"],
   "scripts": {
     "build": "npm run build --workspaces --if-present",
-    "test": "npm test --workspaces --if-present"
+    "test": "npm test --workspaces --if-present",
+    "test:all": "CI=true npm test --workspaces --if-present -- --verbose --coverage --coverageReporters text html json-summary && (cd frontend && CI=true npm test -- --verbose --reporters=default --coverage --coverageReporters text html json-summary) && node scripts/coverage-summary.mjs"
   },
   "devDependencies": {
     "@types/amqplib": "^0.10.6",

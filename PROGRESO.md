@@ -12,7 +12,7 @@
 - [x] Fase 8 – Diseño IA
 - [x] Fase 9 – ai-agent-service
 - [x] Fase 10 – Ejercicio 4 (diagnóstico)
-- [ ] Fase 11 – Documentación
+- [x] Fase 11 – Documentación
 - [ ] Fase 12 – Revisión final
 
 ## Bitácora
@@ -87,6 +87,14 @@
 - Verificado: los nombres de campos de log, mensajes, umbrales del breaker, reintentos del consumidor, colas y campos de `MetricsSummary` se contrastaron con el código. **No verificado:** las consultas no se ejecutaron contra un incidente real; las de Loki/Elastic son de referencia; el nombre de la colección de métricas en Mongo (`ai_metrics`) debe confirmarse con `getCollectionNames()`; el comportamiento exacto de auth con Redis caído está marcado como «verificar».
 - Brecha detectada y documentada: `/api/ai/metrics` no expone tasa de 429 (solo `degradedRate`); `outbox_events` no se purga. Quedan como acciones del postmortem, sin tocar código (fuera del alcance de la fase).
 - Cómo explicarlo en la entrevista: razono el incidente desde las cuatro dependencias compartidas (Postgres, RabbitMQ, Redis, Gemini) y priorizo por la hipótesis que explica varios síntomas a la vez; el `correlationId` es la herramienta central: si aparece en el emisor y no en los consumidores, el fallo es de propagación asíncrona y no de la petición; distingo mitigación (reversible, minutos) de corrección de fondo; y explico qué contiene cada cascada (timeout + breaker, outbox, DLQ, caché de permisos, modo degradado del agente) y qué no, como los usuarios «a medias» que solo se curan al drenar el outbox.
+
+### Fase 11
+
+- Entregado: `README.md` raíz (descripción, diagrama embebido de `docs/01-arquitectura.md`, requisitos, LLM con Gemini/mock/ollama, compose, credenciales, URLs, tests y coverage, índice de entregables a archivos y limitaciones); README corto en cada servicio (`services/*/README.md`); `frontend/README.md` (renombrado desde `readme.md`) con desarrollo con proxy, Docker y «State management» con rutas; `docs/02-ddd-clean-architecture.md` con ejemplos reales (recorrido de crear usuario, invariantes, puertos y adaptadores, proveedor de LLM); script `test:all` en la raíz con `scripts/coverage-summary.mjs` para la tabla final.
+- Verificado: `npm run test:all` 447 tests pasando, 0 fallos, código de salida 0; tabla de coverage: common 94.23 %, ai-agent 97.93 %, audit 100 %, auth 99.62 %, role 99.14 %, user 99.56 %, frontend 77.48 % (statements). Los 88 enlaces relativos de los documentos nuevos resuelven. Las reglas de capas de la guía DDD se comprobaron con grep.
+- **No verificado:** el render del diagrama Mermaid en GitHub (el bloque es idéntico al de `docs/01-arquitectura.md`, pero no se vio renderizado); el arranque de `docker compose up` a partir de un clon limpio.
+- Decisiones: el frontend sigue fuera de los workspaces, así que `test:all` lo instala aparte (`cd frontend && npm ci`). En el frontend, `--verbose` no imprimía los ✓ por test con Jest 30; se añadió `--reporters=default` solo a su invocación (causa de fondo sin investigar). Si un paquete falla, la cadena se corta y no se imprime la tabla.
+- Cómo explicarlo en la entrevista: la guía DDD se apoya en rutas reales y en comprobaciones con grep de las reglas de dependencia, no en descripciones genéricas; el dominio no importa de frameworks ni de SDKs, y la única concesión en `application/` son los decoradores de inyección de NestJS; un caso de uso concreto (crear usuario) muestra cada capa, desde el controlador hasta el `$transaction` que guarda el usuario y su evento de outbox; el umbral de coverage se explica por alcance (dominio y casos de uso), y la tabla resumen muestra también el frontend, que queda más bajo y se declara como tal.
 
 ## Pendientes / notas
 
