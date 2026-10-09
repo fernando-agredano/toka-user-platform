@@ -27,7 +27,24 @@ Estado actual del trabajo:
 
 1. Verifica que compile y que los tests de lo tocado pasen.
 2. Actualiza `PROGRESO.md`: marca la fase, lista lo entregado y las decisiones tomadas, y añade 3-5 líneas de "Cómo explicarlo en la entrevista".
-3. Haz commit con Conventional Commits.
+3. Haz commit usando exactamente el mensaje de la tabla "Commits por fase".
+
+## Commits por fase
+
+| Fase | Mensaje de commit |
+|---|---|
+| 0-1 | `chore: initial context and architecture` |
+| 2 | `feat(auth): add monorepo setup, common package and auth-service` |
+| 3 | `feat(user,role): add user-service and role-service` |
+| 4 | `feat(audit): add audit-service, gateway and infra config` |
+| 5 | `test: increase backend unit test coverage above 70%` |
+| 6 | `feat(frontend): add React app with RTK Query and protected routes` |
+| 7 | `test(frontend): add component and state tests` |
+| 8 | `docs(ai): add prompt engineering strategy and knowledge base` |
+| 9 | `feat(ai): add RAG agent service with evaluation and rate limiting` |
+| 10 | `docs: add production incident diagnosis (exercise 4)` |
+| 11 | `docs: add READMEs and DDD/Clean Architecture guide` |
+| 12 | `chore: final review fixes` |
 
 ## Comandos útiles
 
