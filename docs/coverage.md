@@ -1,6 +1,6 @@
-# Cobertura de tests del backend
+# Cobertura de tests
 
-Reportes HTML generados con `npm test -- --coverage` y versionados en `docs/coverage/<paquete>/`.
+Reportes HTML generados con `npm test -- --coverage` (en el frontend, `npm run test:coverage`) y versionados en `docs/coverage/<paquete>/`.
 Abre `index.html` de cada carpeta en el navegador.
 
 ## Cobertura oficial (umbral 70% en `jest.config.ts`)
@@ -14,8 +14,8 @@ Es la métrica que valida `npm test -- --coverage`. Cada paquete mide el alcance
 | user-service | 33 | 99.56% | 100% | 97.91% | 99.47% | [index.html](coverage/user-service/index.html) |
 | role-service | 32 | 99.14% | 95.00% | 97.95% | 99.46% | [index.html](coverage/role-service/index.html) |
 | audit-service | 7 | 100% | 93.54% | 100% | 100% | [index.html](coverage/audit-service/index.html) |
-| ai-agent-service | 221 | 97.93% | 90.18% | 96.87% | 98.13% | — |
-| frontend (Jest + RTL) | 29 | 77.48% | 59.01% | 66.08% | 80.00% | — |
+| ai-agent-service | 221 | 97.93% | 90.18% | 96.87% | 98.13% | [index.html](coverage/ai-agent-service/index.html) |
+| frontend (Jest + RTL) | 29 | 77.48% | 59.01% | 66.08% | 80.00% | [index.html](coverage/frontend/index.html) |
 
 ## Alcance real de los servicios (medido, no configurado)
 

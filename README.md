@@ -158,7 +158,11 @@ Reporte HTML de cada paquete (se genera con `test:all`):
 - `packages/common/coverage/index.html`
 - `frontend/coverage/index.html`
 
+Una copia versionada de esos reportes, de los 7 paquetes, está en [docs/coverage/](docs/coverage/).
+
 Para un solo servicio: `npm test -w services/auth-service -- --coverage`.
+
+**CI:** cada push o PR a `master`/`main` corre [.github/workflows/backend.yml](.github/workflows/backend.yml) (build + tests con umbral de 70 %) y [.github/workflows/frontend.yml](.github/workflows/frontend.yml) (lint, typecheck, tests y build).
 
 ## Documentación
 

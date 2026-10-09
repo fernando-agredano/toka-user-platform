@@ -1,0 +1,39 @@
+name: Backend CI
+
+on:
+  push:
+    branches: [master, main]
+    paths-ignore:
+      - "frontend/**"
+      - "docs/**"
+      - "**/*.md"
+  pull_request:
+    branches: [master, main]
+    paths-ignore:
+      - "frontend/**"
+      - "docs/**"
+      - "**/*.md"
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Builds @toka/common first (workspace order), then every service; Prisma clients are generated inside each build.
+      - name: Build
+        run: npm run build
+
+      # Each workspace enforces its 70% coverage threshold in jest.config.ts.
+      - name: Unit tests with coverage threshold
+        run: npm test --workspaces --if-present -- --coverage
+        env:
+          CI: "true"

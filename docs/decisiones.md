@@ -178,3 +178,11 @@ Caché, rate limit, métricas, conversaciones y recuperación fallan abiertos: s
 
 ### 51. Pendiente: peso de las imágenes de los otros servicios
 Los `Dockerfile` de auth, user, role y audit hacen `npm ci` de todo el monorepo y copian el `node_modules` completo. Con las dependencias del agente (743 MB en total) sus imágenes crecerán al reconstruirse (hoy 264–333 MB). No se tocaron por estar fuera del alcance de la fase y no se midió el impacto. Solución propuesta: `npm ci -w services/<svc> -w packages/common --include-workspace-root`. Para el agente, se podrían además podar los binarios de `onnxruntime-node` de otras plataformas (~200 MB).
+
+## Fase 12
+
+### 52. Autenticación «OAuth2/OIDC distribuida»: modelo de tokens de OIDC, no un proveedor OIDC completo
+auth-service emite access tokens JWT RS256 con los claims de OIDC (`iss`, `aud`, `sub`, `exp`, `jti`) y publica sus llaves en un JWKS; cada servicio los valida en local con `createRemoteJWKSet` y caché, sin llamar a auth por petición. No se implementó discovery (`/.well-known/openid-configuration`), ID tokens ni los flujos de OAuth2 (authorization code + PKCE, client credentials), porque hay un único cliente de primera parte (la SPA) y el refresh rota con cookie httpOnly. Si aparecieran clientes de terceros, se sustituiría auth-service por un proveedor estándar (Keycloak, Auth0) sin tocar los demás servicios: solo cambian `AUTH_JWKS_URL`, `JWT_ISSUER` y `JWT_AUDIENCE`.
+
+### 53. CI con GitHub Actions
+Dos workflows: `backend.yml` (build de todos los workspaces y tests con el umbral de 70 % de cada `jest.config.ts`) y `frontend.yml` (lint, typecheck de tests, tests y build), porque el frontend no es workspace y tiene su propio lockfile. Corren en `master` y `main`. No incluyen deploy ni tests de integración con el stack Docker.

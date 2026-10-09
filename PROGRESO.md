@@ -16,7 +16,7 @@
 - [x] Fase 11.2 – Documentación del frontend (Ejercicio 3)
 - [x] Fase 11.5 – PDF de documentación técnica
 - [x] Fase 11.6 – Sección de frontend en el PDF
-- [ ] Fase 12 – Revisión final
+- [x] Fase 12 – Revisión final
 
 ## Bitácora
 
@@ -122,14 +122,19 @@
 - Pendiente: la p.71 (gráfico de latencia al final de la sección 7) queda a media página; los diagramas anchos hacen que la página anterior termine antes. Los enlaces relativos de los documentos se muestran como texto en el PDF.
 - Cómo explicarlo en la entrevista: la documentación sigue siendo la fuente de verdad en Markdown y el PDF es un artefacto reproducible con un comando, no un documento editado a mano; las cifras de los KPI y gráficos se leen de los mismos archivos que describen el sistema, y donde son del mock lo digo en la propia página; el índice con números reales exigió renderizar dos veces y buscar cada título en el PDF, porque el paginado solo se conoce al final; ante dos requisitos en conflicto (no cortar tablas / no dejar páginas vacías) fijé una regla medible en vez de resolverlo caso por caso; y revisé el resultado mirando capturas, lo que destapó problemas que el log no mostraba, como un diagrama con el texto a 3 px.
 
+### Fase 12
+
+- Entregado: `docs/REQUISITOS.md` marcado punto por punto con evidencia (todo cumple salvo Gemini contra la API real, que queda parcial); reportes HTML de coverage de ai-agent-service y frontend versionados en `docs/coverage/` (faltaban; ya están los 7 paquetes); CI en `.github/workflows/backend.yml` y `frontend.yml`; ADR §52 (alcance de «OAuth2/OIDC distribuida») y §53 (CI); `coverage` excluido de Biome en el frontend (el lint fallaba en local si existía el reporte generado); enlaces a CI y coverage en el `README.md`.
+- Verificado: `npm run build` raíz OK; tests de los 6 workspaces con coverage pasan (80 + 221 + 7 + 45 + 32 + 33); frontend `lint`, `typecheck:test`, 29 tests y `build` OK. Sin `.env` versionado; el historial no contiene ninguna `GEMINI_API_KEY` con valor (el único `AIza…` es una llave falsa en un test de redacción de PII). Entregable `../toka-user-platform.zip` generado con `git archive`.
+- **No verificado:** los workflows no se han ejecutado en GitHub (no hay remoto); se probaron sus mismos comandos en local.
+- Cómo explicarlo en la entrevista: la revisión final se hizo contra la rúbrica con evidencia por archivo, no de memoria; donde algo no está probado (Gemini real, consultas del diagnóstico) lo declaro como parcial en vez de marcarlo como hecho; el CI replica exactamente lo que verifiqué en local y separa frontend y backend porque tienen lockfiles distintos.
+
 ## Pendientes / notas
 
 - Probar el agente con una `GEMINI_API_KEY` real y regenerar `docs/05-ejemplos.md` (`npm run eval:agent -w services/ai-agent-service -- --examples`); es lo único que falta para cerrar el Ejercicio 5 con respuestas de un modelo de verdad. Con key, ejercitar también el gate de RPM y el 429.
 - Peso de las imágenes de los otros servicios al reconstruirse (`docs/decisiones.md` §51).
-- CI del agente (Fase 12): `npm ci && npm test -w services/ai-agent-service -- --coverage && npm run build -w services/ai-agent-service`.
 - La caché de respuestas del agente vive 1 h en Redis y sobrevive reinicios; al cambiar el código del mock en desarrollo hay que limpiar `ai:resp:*`.
 
 
-- El frontend no está en los workspaces: su CI (Fase 12/ci-cd) debe tener un job propio con `cd frontend && npm ci && npm run lint && npm run typecheck:test && npm test && npm run build`.
 - Cobertura de servicios sobre `src/**` completo: pendiente decidir si el umbral debe medir también presentación e infraestructura (ver `docs/coverage.md`). Hoy la infraestructura de audit solo se prueba con el stack real.
 - El puerto 3001 de esta máquina estaba ocupado por otro proceso durante el smoke test (se usó 13001); no afecta a Docker.
