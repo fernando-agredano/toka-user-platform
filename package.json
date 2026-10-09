@@ -1,0 +1,23 @@
+{
+  "name": "toka-user-platform",
+  "version": "0.1.0",
+  "private": true,
+  "engines": { "node": ">=20" },
+  "workspaces": ["packages/*", "services/*"],
+  "scripts": {
+    "build": "npm run build --workspaces --if-present",
+    "test": "npm test --workspaces --if-present"
+  },
+  "devDependencies": {
+    "@types/amqplib": "^0.10.6",
+    "@types/cookie-parser": "^1.4.8",
+    "@types/express": "^4.17.21",
+    "@types/jest": "^29.5.14",
+    "@types/node": "^22.10.2",
+    "@types/opossum": "^8.1.8",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.2.5",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.2"
+  }
+}

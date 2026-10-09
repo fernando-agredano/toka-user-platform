@@ -1,0 +1,9 @@
+node_modules/
+dist/
+coverage/
+generated/
+.keys/
+keys/
+.env
+*.log
+.DS_Store
