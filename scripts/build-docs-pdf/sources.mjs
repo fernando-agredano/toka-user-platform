@@ -32,8 +32,8 @@ export const SECTIONS = [
   {
     key: 'frontend',
     title: 'Frontend',
-    description: 'SPA en React con RTK Query, sesión en memoria y refresh automático del token.',
-    file: 'frontend/README.md',
+    description: 'SPA en React: pantallas, state management con RTK Query, integración con el gateway, UX y tests (Ejercicio 3).',
+    file: 'docs/03-frontend.md',
   },
   {
     key: 'diagnostico',

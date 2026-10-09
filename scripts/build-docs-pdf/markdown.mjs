@@ -98,9 +98,19 @@ export function renderMarkdown(markdown, { label, baseDir, keepNumbers = false, 
       return /^https?:\/\//.test(href) ? `<a href="${escapeHtml(href)}">${inner}</a>` : inner;
     },
 
-    image({ href, text }) {
+    // A lone image becomes a numbered figure inside a browser-window frame; its title is the URL bar.
+    paragraph({ tokens }) {
+      const isLoneImage = tokens.length === 1 && tokens[0].type === 'image';
+      const html = this.parser.parseInline(tokens);
+      return isLoneImage ? html : `<p>${html}</p>\n`;
+    },
+
+    image({ href, text, title }) {
       const source = /^https?:\/\//.test(href) ? null : localImage(href, baseDir);
-      return source ? `<img src="${source}" alt="${escapeHtml(text)}">` : '';
+      if (!source) return '';
+      const caption = escapeHtml(text);
+      const url = escapeHtml(title ?? 'localhost:8080');
+      return `<figure class="figure screenshot"><div class="browser"><div class="browser-bar"><span class="dots"><i></i><i></i><i></i></span><span class="url">${url}</span></div><img src="${source}" alt="${caption}"></div><figcaption>Figura @@FIG@@. ${caption}</figcaption></figure>\n`;
     },
   };
 

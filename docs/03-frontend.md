@@ -20,25 +20,37 @@ Trade-off principal: RTK Query añade una capa de conceptos (tags, `injectEndpoi
 
 Capturas tomadas con Playwright (Chromium, 1366×820) contra el stack real levantado con `docker compose up -d`, entrando como `admin@toka.local`.
 
-| Pantalla | Captura |
-|---|---|
-| Login | ![Login](img/frontend/01-login.png) |
-| Inicio | ![Inicio](img/frontend/00-inicio.png) |
-| Usuarios | ![Usuarios](img/frontend/02-usuarios.png) |
-| Roles | ![Roles](img/frontend/03-roles.png) |
-| Auditoría | ![Auditoría](img/frontend/04-auditoria.png) |
-| Asistente IA | ![Asistente IA](img/frontend/05-asistente.png) |
-| Error de validación | ![Validación](img/frontend/06-validacion.png) |
-| Estado de carga | ![Carga](img/frontend/07-carga.png) |
+**Login.** Tarjeta centrada con correo y contraseña; enlace a registro.
 
-- **Login**: tarjeta centrada con correo y contraseña; enlace a registro.
-- **Inicio**: tarjetas de acceso a cada sección, generadas desde la misma tabla de navegación que el menú.
-- **Usuarios**: búsqueda con debounce, filtro de estado, paginación, y acciones crear, editar y activar/desactivar (con diálogo de confirmación).
-- **Roles**: catálogo de roles con sus permisos y panel para asignar o quitar roles a un usuario.
-- **Auditoría**: tarjetas de estadísticas (eventos totales, cuentas bloqueadas…), eventos por tipo y listado filtrable.
-- **Asistente IA**: chat con la respuesta, fuentes citadas con su relevancia, y métricas (modelo, latencia, tokens, costo, caché, calidad).
-- **Error de validación**: se envió el formulario con un correo mal formado y la contraseña vacía; los mensajes salen de zod, sin ninguna petición al servidor.
-- **Estado de carga**: la petición `GET /api/users` se retrasó 4 s artificialmente para capturar el esqueleto de la tabla.
+![Pantalla de login](img/frontend/01-login.png "localhost:8080/login")
+
+**Inicio.** Tarjetas de acceso a cada sección, generadas desde la misma tabla de navegación que el menú.
+
+![Pantalla de inicio](img/frontend/00-inicio.png "localhost:8080/")
+
+**Usuarios.** Búsqueda con debounce, filtro de estado, paginación, y acciones crear, editar y activar/desactivar (con diálogo de confirmación).
+
+![Listado de usuarios](img/frontend/02-usuarios.png "localhost:8080/users")
+
+**Roles.** Catálogo de roles con sus permisos y panel para asignar o quitar roles a un usuario.
+
+![Gestión de roles](img/frontend/03-roles.png "localhost:8080/roles")
+
+**Auditoría.** Tarjetas de estadísticas (eventos totales, cuentas bloqueadas…), eventos por tipo y listado filtrable.
+
+![Auditoría y estadísticas](img/frontend/04-auditoria.png "localhost:8080/audit")
+
+**Asistente IA.** Chat con la respuesta, fuentes citadas con su relevancia y métricas (modelo, latencia, tokens, costo, caché, calidad).
+
+![Asistente IA con fuentes y métricas](img/frontend/05-asistente.png "localhost:8080/assistant")
+
+**Error de validación.** Se envió el formulario con un correo mal formado y la contraseña vacía; los mensajes salen de zod, sin ninguna petición al servidor.
+
+![Error de validación en el login](img/frontend/06-validacion.png "localhost:8080/login")
+
+**Estado de carga.** La petición `GET /api/users` se retrasó 4 s artificialmente para capturar el esqueleto de la tabla.
+
+![Esqueleto de carga en Usuarios](img/frontend/07-carga.png "localhost:8080/users")
 
 > La captura del asistente la generó el `MockProvider` (no hay `GEMINI_API_KEY` en este entorno), por eso el modelo aparece como `mock` y el costo como $0. Ver limitaciones en el [README raíz](../README.md).
 

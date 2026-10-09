@@ -66,7 +66,7 @@ Cinco servicios de backend con bounded contexts propios, un frontend React, un g
 | role-service | 3003 | Roles y permisos | [services/role-service](services/role-service/README.md) |
 | audit-service | 3004 | Auditoría (lectura CQRS) | [services/audit-service](services/audit-service/README.md) |
 | ai-agent-service | 3005 | Asistente IA (RAG) | [services/ai-agent-service](services/ai-agent-service/README.md) |
-| frontend | 8080 (vía gateway) | SPA React | [frontend](frontend/README.md) |
+| frontend | 8080 (vía gateway) | SPA React | [frontend](docs/03-frontend.md) |
 
 ## Requisitos
 
@@ -177,10 +177,11 @@ Para un solo servicio: `npm test -w services/auth-service -- --coverage`.
 | Cómo ejecutar el sistema completo | este README |
 | Cómo se aplicaron DDD y Clean Architecture | [docs/02-ddd-clean-architecture.md](docs/02-ddd-clean-architecture.md) |
 | **Ejercicio 3 – Frontend** | |
+| Documentación completa (pantallas, integración, UX, tests) | [docs/03-frontend.md](docs/03-frontend.md) |
 | Código fuente | [frontend/src/](frontend/src/) |
-| Configuración de state management | [frontend/README.md](frontend/README.md#state-management) y [frontend/src/api/store.ts](frontend/src/api/store.ts) |
+| Configuración de state management | [docs/03-frontend.md](docs/03-frontend.md#3-state-management) y [frontend/src/api/store.ts](frontend/src/api/store.ts) |
 | Tests de componentes y lógica | [frontend/test/](frontend/test/) |
-| Cómo ejecutar el front | [frontend/README.md](frontend/README.md) |
+| Cómo ejecutar el front | [docs/03-frontend.md](docs/03-frontend.md#7-ejecución) y [frontend/README.md](frontend/README.md) |
 | **Ejercicio 4 – Diagnóstico** | |
 | Hipótesis, plan de diagnóstico, logs, IA y comunicación | [docs/04-diagnostico.md](docs/04-diagnostico.md) |
 | **Ejercicio 5 – IA y agentes** | |

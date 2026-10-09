@@ -15,6 +15,7 @@
 - [x] Fase 11 – Documentación
 - [x] Fase 11.2 – Documentación del frontend (Ejercicio 3)
 - [x] Fase 11.5 – PDF de documentación técnica
+- [x] Fase 11.6 – Sección de frontend en el PDF
 - [ ] Fase 12 – Revisión final
 
 ## Bitácora
@@ -105,6 +106,12 @@
 - **No verificado:** el render del diagrama Mermaid en GitHub; las capturas de inicio, roles y auditoría no se revisaron visualmente una a una. La respuesta del asistente en la captura es del `MockProvider`.
 - Incidencia: el gateway tenía IPs cacheadas de contenedores recreados y devolvía 502; se resolvió con `docker compose restart gateway` (nginx resuelve los upstreams solo al arrancar).
 - Cómo explicarlo en la entrevista: elegí Vite + SPA porque es una app privada tras login, sin SEO ni SSR; RTK Query centraliza caché, etiquetas de invalidación y el reintento ante 401, así que las pantallas no repiten esa lógica; el access token vive solo en memoria y la sesión se restaura con la cookie httpOnly, y como el refresh rota y su reutilización se trata como robo, todas las peticiones concurrentes comparten una única promesa de refresh; los permisos en la UI son solo UX y una tabla de navegación alimenta menú, inicio y guards; las capturas salen del stack real con Playwright, y declaro cuáles son del mock.
+
+### Fase 11.6
+
+- Entregado: el generador del PDF usa `docs/03-frontend.md` como sección 3 (entre DDD y diagnóstico, con su página separadora) en lugar de `frontend/README.md`. Las capturas se renderizan con marco de ventana de navegador (barra con puntos y URL tomada del título de la imagen en Markdown) y pie «Figura N.» numerado con el texto alternativo (`markdown.mjs`, `styles.css`). Para eso se pasaron las capturas de `docs/03-frontend.md` de una tabla a figuras independientes con título-URL. El índice del `README.md` principal enlaza `docs/03-frontend.md` (tabla de servicios y filas del Ejercicio 3). PDF regenerado: 95 páginas (antes 87), sección 3 en la p.17, capturas en las pp.19-22.
+- Verificado: capturas de la página separadora (p.17) y de dos páginas con figuras (pp.19-20); la numeración de figuras y el índice se recalculan en las 2 pasadas habituales. Primer intento: la sombra del marco generaba un fondo gris y un pie solapado en la segunda figura de cada página; se eliminó `box-shadow` y se confirmó en el segundo intento. No revisé visualmente las pp.21-22 ni el diagrama de secuencia (Figura 10, p.27, que queda en una página casi solo de diagrama).
+- Cómo explicarlo en la entrevista: el PDF sigue siendo un artefacto derivado de los Markdown, así que cambiar de fuente fue editar una ruta; el marco de navegador sale de una regla en el renderizador de imágenes, no de editar las capturas, y la URL de la barra viene del título de cada imagen; ante un defecto visual lo diagnostiqué mirando la captura (sombra rasterizada por Chromium) y lo corregí en el CSS en lugar de tocar el contenido.
 
 ### Fase 11.5
 

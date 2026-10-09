@@ -271,6 +271,53 @@ th code {
 .figure.chart svg {
   width: 100%;
 }
+.figure.screenshot {
+  width: 78%;
+  margin: 14px auto;
+}
+.browser {
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
+}
+.browser-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px;
+  background: #e2e8f0;
+  border-bottom: 1px solid #cbd5e1;
+}
+.browser-bar .dots {
+  display: flex;
+  gap: 4px;
+}
+.browser-bar .dots i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #94a3b8;
+}
+.browser-bar .dots i:nth-child(1) { background: #f87171; }
+.browser-bar .dots i:nth-child(2) { background: #fbbf24; }
+.browser-bar .dots i:nth-child(3) { background: #4ade80; }
+.browser-bar .url {
+  flex: 1;
+  padding: 2px 10px;
+  border-radius: 10px;
+  background: #fff;
+  color: var(--slate);
+  font-size: 7.5pt;
+  text-align: left;
+}
+.browser img {
+  display: block;
+  width: 100%;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+}
 figcaption {
   margin-top: 6px;
   font-size: 8.2pt;
