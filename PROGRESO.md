@@ -9,7 +9,7 @@
 - [x] Fase 5 – Tests backend ≥70%
 - [x] Fase 6 – Frontend
 - [x] Fase 7 – Tests frontend (Haiku)
-- [ ] Fase 8 – Diseño IA
+- [x] Fase 8 – Diseño IA
 - [ ] Fase 9 – ai-agent-service
 - [ ] Fase 10 – Ejercicio 4 (diagnóstico)
 - [ ] Fase 11 – Documentación
@@ -66,7 +66,16 @@
 - Deuda declarada: el refresh single-flight de `base-query.ts` y los guards `RequireAuth`/`GuestOnly` no tienen tests todavía. Es la siguiente prioridad por ser el flujo de sesión más sensible.
 - Cómo explicarlo en la entrevista: los formularios se prueban contra HTTP real simulado con MSW, así que el test verifica el contrato y el mensaje que llega del servidor, no un mock de hooks; la validación de cliente con zod se verifica por ausencia de peticiones; la protección de rutas se prueba como estado, reaccionando a `sessionStarted` y `sessionCleared` en vez de simular el router; y la cobertura se reporta por flujo crítico, no como número global.
 
+### Fase 8
+
+- Entregado: `docs/05-prompt-engineering.md` (flujo de la petición, system prompt completo y versionado, 3 few-shot, política de razonamiento con `thinkingBudget` condicional, 4 tools con schema y endpoint/permiso, chunking y retrieval, presupuesto de tokens y caché, rate limiting en 3 capas con reintentos, breaker y cadena de fallback, métricas de latencia/coste con tabla de precios configurable, score de calidad 0-1, contrato de respuesta y plan de evaluación offline). Base de conocimiento en `services/ai-agent-service/knowledge/` (políticas de roles/permisos y de contraseñas, guía de uso y FAQ), con los valores reales del código: 6 permisos, bloqueo 5/15 min, access 15 min, refresh 7 días con rotación, contraseña de 8-128 caracteres, auditoría 365 días y etiquetas reales de la UI.
+- Verificado: solo diseño, no hay código que compilar. Se contrastaron los valores de la KB con `auth-config.ts`, `password.ts`, `permission.ts`, el DTO de usuarios y el frontend.
+- Decisiones: `docs/decisiones.md` (Fase 8, §37-42). Desvíos: la clave de caché usa permisos en vez de rol y `conversationId` se devuelve en la respuesta. Variables nuevas para la Fase 9: `LLM_FALLBACK_PROVIDER`, `LLM_PRICING_JSON` y `EMBEDDING_MODEL`.
+- Cómo explicarlo en la entrevista: la seguridad del agente no depende del prompt: las tools usan el JWT del usuario y solo se le ofrecen las que su sesión permite, así que una inyección no da acceso a nada nuevo; los chunks son pequeños porque MiniLM trunca a 256 wordpieces en silencio, y un encabezado `documento > sección` recupera el contexto perdido; cada respuesta lleva coste calculado desde una tabla configurable y un score de calidad determinista (citas verificables `[S#]/[D#]`, números presentes en la fuente, PII redactada) sin pagar un segundo LLM; ante rate limits el sistema degrada a fragmentos citados en vez de fallar.
+
 ## Pendientes / notas
+
+- Fase 9: implementar según `docs/05-prompt-engineering.md`; empezar por `eval/retrieval-cases.json` para calibrar umbral y comparar el modelo de embeddings multilingüe antes de fijarlo. Añadir `id` y `section` opcionales a `AiSource` en el frontend.
 
 - Fase 9: descomentar `ai-agent-service` en el compose y en el `depends_on` del gateway, y añadir su `location /api/ai/` + upstream en nginx.conf (hoy `/api/ai/*` responde 404). Revisar que `sources[]`, `quality.checks` y `conversationId` coincidan con los tipos de `frontend/src/@types/api.ts` (ver `docs/decisiones.md` §29).
 - El frontend no está en los workspaces: su CI (Fase 12/ci-cd) debe tener un job propio con `cd frontend && npm ci && npm run lint && npm run typecheck:test && npm test && npm run build`.

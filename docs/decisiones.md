@@ -129,3 +129,23 @@ El store de la app es un singleton de módulo (con sus listeners de toasts y de 
 
 ### 36. Sin umbral de cobertura en el frontend
 Se reporta cobertura pero no se fuerza un umbral global: el objetivo de CLAUDE.md es señal sobre flujos críticos, no cobertura total. Login, registro y slice de auth quedan al 100 % de statements; la lista de usuarios al 67 % (faltan los modales de alta/edición y la confirmación de activar/desactivar); `RequirePermission` está cubierto. Quedan sin cubrir el refresh single-flight de `base-query.ts` y los guards `RequireAuth`/`GuestOnly`: se anotan como deuda, no se incluyen en esta fase.
+
+## Fase 8
+
+### 37. Permisos estructurales, no dependientes del prompt
+Las tools del agente llaman a los endpoints públicos con el JWT del usuario y solo se declaran al modelo las que su sesión permite. El system prompt refuerza la negativa, pero la garantía es que el modelo nunca tiene más acceso que el usuario. La detección de prompt injection solo marca métricas, no bloquea (falsos positivos con preguntas legítimas de seguridad). Detalle: `docs/05-prompt-engineering.md` §5 y §8.4.
+
+### 38. Chunks de ≤ 200 wordpieces con encabezado contextual
+`all-MiniLM-L6-v2` trunca a 256 wordpieces y el español se fragmenta más que el inglés. Se corta por secciones `##` con overlap de 40 y se antepone `documento > sección` al texto embebido. Umbral inicial 0,30, a calibrar con el set de recuperación en la Fase 9. Se recomienda comparar con `paraphrase-multilingual-MiniLM-L12-v2` (también 384 dims); si se adopta, será un desvío del contrato.
+
+### 39. Calidad determinista en línea, LLM-as-judge solo offline
+El score 0-1 (groundedness léxica + números, citas válidas, PII, formato, longitud) se calcula en cada respuesta sin un segundo LLM, para no duplicar coste ni consumo de RPM. Las respuestas con PII se redactan; las de score bajo no se cachean ni se regeneran.
+
+### 40. Clave de caché por permisos en vez de por rol (desvío menor)
+El contrato dice `hash(pregunta normalizada + rol)`. Se usa el conjunto de permisos ordenado, más `kbVersion`, `PROMPT_VERSION` y el modelo. Es más estricto con roles personalizados y re-ingestar o cambiar el prompt invalida la caché sin hacer flush. Solo se cachea el primer turno y nunca con tools de datos personales.
+
+### 41. Contrato de respuesta del chat (cierra §29)
+`sources[]` = `{id: "S#"|"D#", title, source, section?, score?, snippet}`; `quality.checks` = `{grounded: number, citationsValid, noPii, format, length, degraded: boolean}`; `conversationId` se devuelve siempre (extensión: el contrato solo lo define en la petición). Compatible con `frontend/src/@types/api.ts` agregando `id` y `section` opcionales.
+
+### 42. Fallback sin 500: proveedor alternativo o modo degradado
+Ante 429 persistente, breaker abierto o falta de slot global, se usa `LLM_FALLBACK_PROVIDER` (Ollama) si está configurado. Si no, las preguntas de documentación reciben los fragmentos recuperados sin redactar (`degraded: true`) y las que necesitan datos reciben 503 con `Retry-After`. Variables nuevas para la Fase 9: `LLM_FALLBACK_PROVIDER`, `LLM_PRICING_JSON` y `EMBEDDING_MODEL` (opcional).
