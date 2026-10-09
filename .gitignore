@@ -1,6 +1,7 @@
 node_modules/
 dist/
 coverage/
+!docs/coverage/
 generated/
 .keys/
 keys/

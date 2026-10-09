@@ -6,7 +6,7 @@
 - [x] Fase 2 – Monorepo + common + auth-service
 - [x] Fase 3 – user-service + role-service
 - [x] Fase 4 – audit-service + infra + compose funcional
-- [ ] Fase 5 – Tests backend ≥70%
+- [x] Fase 5 – Tests backend ≥70%
 - [ ] Fase 6 – Frontend
 - [ ] Fase 7 – Tests frontend
 - [ ] Fase 8 – Diseño IA
@@ -44,9 +44,15 @@
 - Decisiones: `docs/decisiones.md` (Fase 4, §19-23). Correcciones de fases previas: `HEALTHCHECK` con `127.0.0.1` (IPv6 en Alpine) y `openssl` en el runtime de user y role.
 - Cómo explicarlo en la entrevista: audit es el lado de lectura de un CQRS ligero: consume todo con un binding `#` y es idempotente por un índice único, no solo por Redis; las colas se declaran en `definitions.json` con los mismos argumentos DLX que el código, para que el broker nunca rechace una redeclaración; el gateway bloquea `/internal` con una regex y propaga el correlation-id, así que una petición se puede seguir de nginx a los eventos de auditoría; levantar el stack real destapó dos bugs que los tests unitarios no podían ver (healthcheck IPv6 y openssl para Prisma).
 
+### Fase 5
+
+- Entregado: tests unitarios nuevos en `packages/common` (guards y decoradores de roles/permisos, verificador JWT con blacklist, `BaseConsumer` con idempotencia/retry/DLQ, `EventPublisher` con confirms y reconexión, logger con redacción, `configureApp`, health indicator, conexión RabbitMQ, helpers de env). Pasa de 19 a 78 tests y de ~30% a 94% statements. Los servicios ya superaban 70% y no se tocó su código. Reportes HTML en `docs/coverage/` y tabla en `docs/coverage.md`.
+- Verificado: `npm run build` de common sin errores; `npm test -- --coverage` en los 5 paquetes pasa el umbral (common 94.21%, auth 99.62%, user 99.56%, role 99.14%, audit 100% statements).
+- Decisiones: el umbral solo mide `domain/` y `application/` (y `infrastructure/http` en algunos servicios). Medido sobre `src/**` completo, auth queda en 48%, audit en 52%, role en 64% y user en 67%. No se cambió la configuración; queda como decisión pendiente (`docs/coverage.md`).
+- Cómo explicarlo en la entrevista: el 70% se mide sobre el dominio y los casos de uso, que es donde un bug cuesta datos; la idempotencia y la DLQ del consumidor se prueban con mocks del canal AMQP, no solo en el stack real; la cobertura alta no oculta el alcance: documentamos qué quedó fuera y por qué, en lugar de subir el número con tests de Prisma o Mongoose contra mocks.
+
 ## Pendientes / notas
 
 - Fase 6: al crear `frontend/Dockerfile`, descomentar `frontend` en el compose y en el `depends_on` del gateway. Fase 9: lo mismo con `ai-agent-service` y su `location /api/ai/` + upstream en nginx.conf.
-- Fase 5: añadir tests de la infraestructura de audit (repositorio Mongo con `mongodb-memory-server` o similar) si se quiere cubrirla; hoy solo se prueba con el stack real.
-- Fase 5: `@toka/common` está en ~30% de coverage (guards, JwtVerifier, BaseConsumer, EventPublisher sin tests); `npm test` normal pasa, solo `--coverage` falla el umbral.
+- Cobertura de servicios sobre `src/**` completo: pendiente decidir si el umbral debe medir también presentación e infraestructura (ver `docs/coverage.md`). Hoy la infraestructura de audit solo se prueba con el stack real.
 - El puerto 3001 de esta máquina estaba ocupado por otro proceso durante el smoke test (se usó 13001); no afecta a Docker.
