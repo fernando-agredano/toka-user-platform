@@ -192,15 +192,15 @@ Jest 30 + React Testing Library + MSW 2 (con `@swc/jest`; ver `docs/decisiones.m
 
 ```bash
 cd frontend
-npm test                 # 29 tests
+npm test                 # 32 tests
 npm run test:coverage    # con reporte en frontend/coverage/
 npm run typecheck:test   # typecheck de los tests
 npm run lint             # Biome
 ```
 
-Resultado (última ejecución): **6 suites, 29 tests pasando**. Coverage global: statements **77.48 %**, branches **59.01 %**, functions **66.08 %**, lines **80.00 %**. Login, registro y el slice de auth están al 100 %.
+Resultado (última ejecución): **7 suites, 32 tests pasando**. Coverage global: statements **79.91 %**, branches **62.84 %**, functions **68.69 %**, lines **82.50 %**. Login, registro y el slice de auth están al 100 %. El refresh de token está cubierto por `test/api/base-query.test.ts` con tres casos: varias peticiones con 401 simultáneas comparten una sola petición de refresh, un refresh fallido cierra la sesión y un 401 del login no dispara refresh.
 
-**Deuda declarada**: el refresh single-flight de `base-query.ts` y los guards `RequireAuth`/`GuestOnly` no tienen tests automatizados; se verificaron a mano en navegador.
+**Deuda declarada**: los guards `RequireAuth`/`GuestOnly` no tienen tests automatizados; se verificaron a mano en navegador.
 
 ## 7. Ejecución
 

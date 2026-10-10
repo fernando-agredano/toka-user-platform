@@ -128,7 +128,7 @@ RTK Query construye `new Request('/api/…')`, y el `Request` de Node rechaza UR
 El store de la app es un singleton de módulo (con sus listeners de toasts y de limpieza de caché). `renderWithProviders` lo reinicia antes de cada test (`resetApiState`, toasts y sesión) en lugar de refactorizar `store.ts` a una factoría, que sería un cambio de producción fuera del alcance de la fase.
 
 ### 36. Sin umbral de cobertura en el frontend
-Se reporta cobertura pero no se fuerza un umbral global: el objetivo es señal sobre flujos críticos, no cobertura total. Login, registro y slice de auth quedan al 100 % de statements; la lista de usuarios al 67 % (faltan los modales de alta/edición y la confirmación de activar/desactivar); `RequirePermission` está cubierto. Quedan sin cubrir el refresh single-flight de `base-query.ts` y los guards `RequireAuth`/`GuestOnly`: se anotan como deuda, no se incluyen en esta fase.
+Se reporta cobertura pero no se fuerza un umbral global: el objetivo es señal sobre flujos críticos, no cobertura total. Login, registro y slice de auth quedan al 100 % de statements; la lista de usuarios al 67 % (faltan los modales de alta/edición y la confirmación de activar/desactivar); `RequirePermission` está cubierto. Quedaron sin cubrir el refresh single-flight de `base-query.ts` y los guards `RequireAuth`/`GuestOnly`; el refresh se cubrió después (`frontend/test/api/base-query.test.ts`) y los guards siguen como deuda.
 
 ## Fase 8
 

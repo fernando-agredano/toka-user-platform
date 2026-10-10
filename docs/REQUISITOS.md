@@ -73,7 +73,7 @@ Requisitos técnicos
 - [x] Error states y mensajes — toasts con `detail` de RFC 7807 (`frontend/src/api/toast-slice.ts`)
 - [x] Validación de formularios — zod + react-hook-form (`frontend/src/validators/`)
 - [x] Feedback visual — toasts de éxito/error, confirmaciones (`docs/03-frontend.md` §5)
-- [x] Tests (Jest + React Testing Library) — `frontend/test/` (29 tests, MSW)
+- [x] Tests (Jest + React Testing Library) — `frontend/test/` (32 tests, MSW)
 - [x] Front incluido en docker-compose.yml — servicio `frontend` + gateway
 
 Entregables
@@ -90,7 +90,7 @@ Evaluación
 - [x] Integración correcta — vía gateway, mismo origen, cookie httpOnly
 - [x] Estados de carga, error y éxito — `docs/03-frontend.md` §5
 - [x] Calidad de TypeScript — `strict`, `tsc --noEmit` en build y `typecheck:test`
-- [x] Tests funcionando — 29/29; coverage 77 % statements (`docs/coverage/frontend/`). Parcial: el refresh single-flight de `base-query.ts` no tiene test (deuda declarada en la fase 7)
+- [x] Tests funcionando — 32/32; coverage 80 % statements (`docs/coverage/frontend/`). El refresh single-flight de `base-query.ts` tiene test (`frontend/test/api/base-query.test.ts`). Parcial: los guards `RequireAuth`/`GuestOnly` no tienen test
 - [x] UX básica (feedback, validaciones) — `docs/03-frontend.md` §5
 - [x] Front dockerizado — `frontend/Dockerfile` (nginx-unprivileged, no-root)
 
