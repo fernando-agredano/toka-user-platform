@@ -25,7 +25,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>2/2</span>
+                <span class='fraction'>7/7</span>
             </div>
         
             
@@ -39,14 +39,14 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/0</span>
+                <span class='fraction'>1/1</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>2/2</span>
+                <span class='fraction'>6/6</span>
             </div>
         
             
@@ -106,21 +106,22 @@
 <a name='L41'></a><a href='#L41'>41</a>
 <a name='L42'></a><a href='#L42'>42</a>
 <a name='L43'></a><a href='#L43'>43</a>
-<a name='L44'></a><a href='#L44'>44</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L44'></a><a href='#L44'>44</a>
+<a name='L45'></a><a href='#L45'>45</a>
+<a name='L46'></a><a href='#L46'>46</a>
+<a name='L47'></a><a href='#L47'>47</a>
+<a name='L48'></a><a href='#L48'>48</a>
+<a name='L49'></a><a href='#L49'>49</a>
+<a name='L50'></a><a href='#L50'>50</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">14x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">42x</span>
+<span class="cline-any cline-yes">30x</span>
+<span class="cline-any cline-yes">30x</span>
+<span class="cline-any cline-yes">30x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -149,49 +150,66 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import type { NewAccountValues } from '@/validators/account';
-import type { FieldErrors, UseFormRegister } from 'react-hook-form';
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { fieldValidity } from '@/hooks/use-field-validity';
+import type { NewAccountValues } from '@/validators/account';
+import type { UseFormReturn } from 'react-hook-form';
 import { TextField } from '../ui/Field';
 &nbsp;
-interface NewAccountFieldsProps {
-  register: UseFormRegister&lt;NewAccountValues&gt;;
-  errors: FieldErrors&lt;NewAccountValues&gt;;
-}
-&nbsp;
 /** Shared by self-registration and the admin "create user" modal: both send the same payload. */
-export const NewAccountFields = ({ register, errors }: NewAccountFieldsProps) =&gt; (
-  &lt;&gt;
-    &lt;div className="grid gap-4 sm:grid-cols-2"&gt;
+export const NewAccountFields = ({ form }: { form: UseFormReturn&lt;NewAccountValues&gt; }) =&gt; {
+  const { register, formState } = form;
+  const { errors } = formState;
+  const isValid = fieldValidity(formState);
+&nbsp;
+  return (
+    &lt;&gt;
+      &lt;div className="grid gap-x-4 sm:grid-cols-2"&gt;
+        &lt;TextField
+          label="Nombre"
+          autoComplete="given-name"
+          error={errors.firstName?.message}
+          valid={isValid('firstName')}
+          {...register('firstName')}
+        /&gt;
+        &lt;TextField
+          label="Apellido"
+          autoComplete="family-name"
+          error={errors.lastName?.message}
+          valid={isValid('lastName')}
+          {...register('lastName')}
+        /&gt;
+      &lt;/div&gt;
       &lt;TextField
-        label="Nombre"
-        autoComplete="given-name"
-        error={errors.firstName?.message}
-        {...register('firstName')}
+        label="Correo"
+        type="email"
+        autoComplete="email"
+        error={errors.email?.message}
+        valid={isValid('email')}
+        {...register('email')}
       /&gt;
       &lt;TextField
-        label="Apellido"
-        autoComplete="family-name"
-        error={errors.lastName?.message}
-        {...register('lastName')}
+        label="Contraseña"
+        type="password"
+        autoComplete="new-password"
+        hint="Mínimo 8 caracteres con mayúscula, minúscula, número y símbolo."
+        error={errors.password?.message}
+        valid={isValid('password')}
+        {...register('password')}
       /&gt;
-    &lt;/div&gt;
-    &lt;TextField
-      label="Correo"
-      type="email"
-      autoComplete="email"
-      error={errors.email?.message}
-      {...register('email')}
-    /&gt;
-    &lt;TextField
-      label="Contraseña"
-      type="password"
-      autoComplete="new-password"
-      hint="Mínimo 8 caracteres con mayúscula, minúscula, número y símbolo."
-      error={errors.password?.message}
-      {...register('password')}
-    /&gt;
-  &lt;/&gt;
-);
+    &lt;/&gt;
+  );
+};
 &nbsp;</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
@@ -199,7 +217,7 @@ export const NewAccountFields = ({ register, errors }: NewAccountFieldsProps) =&
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-10-10T01:35:07.241Z
+                at 2026-10-10T04:27:43.294Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

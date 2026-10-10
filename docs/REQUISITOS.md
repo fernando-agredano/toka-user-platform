@@ -72,14 +72,14 @@ Requisitos técnicos
 - [x] Loading states — skeletons (`docs/img/frontend/`, captura de carga)
 - [x] Error states y mensajes — toasts con `detail` de RFC 7807 (`frontend/src/api/toast-slice.ts`)
 - [x] Validación de formularios — zod + react-hook-form (`frontend/src/validators/`)
-- [x] Feedback visual — toasts de éxito/error, confirmaciones (`docs/03-frontend.md` §5)
-- [x] Tests (Jest + React Testing Library) — `frontend/test/` (32 tests, MSW)
+- [x] Feedback visual — toasts de éxito, error, información y advertencia; confirmaciones reutilizables; centro de notificaciones (`docs/03-frontend.md` §5)
+- [x] Tests (Jest + React Testing Library) — `frontend/test/` (51 tests, MSW)
 - [x] Front incluido en docker-compose.yml — servicio `frontend` + gateway
 
 Entregables
 - [x] Código fuente del front — `frontend/src/`
 - [x] Configuración de state management — `frontend/src/api/store.ts`; `docs/03-frontend.md` §3
-- [x] Tests de componentes y lógica — `frontend/test/pages/`, `test/api/auth-slice.test.ts`, `test/routes/guards.test.tsx`
+- [x] Tests de componentes y lógica — `frontend/test/pages/`, `test/components/`, `test/api/`, `test/utils/`, `test/routes/guards.test.tsx`
 - [x] Integración con los microservicios — `docs/03-frontend.md` §4 (tabla pantalla → endpoint → servicio)
 - [x] Documentación de cómo ejecutar el front — `docs/03-frontend.md` §7; `frontend/README.md`
 - [x] docker-compose.yml actualizado — `docker-compose.yml` (`frontend`)
@@ -90,7 +90,7 @@ Evaluación
 - [x] Integración correcta — vía gateway, mismo origen, cookie httpOnly
 - [x] Estados de carga, error y éxito — `docs/03-frontend.md` §5
 - [x] Calidad de TypeScript — `strict`, `tsc --noEmit` en build y `typecheck:test`
-- [x] Tests funcionando — 32/32; coverage 80 % statements (`docs/coverage/frontend/`). El refresh single-flight de `base-query.ts` tiene test (`frontend/test/api/base-query.test.ts`). Parcial: los guards `RequireAuth`/`GuestOnly` no tienen test
+- [x] Tests funcionando — 51/51; coverage 88 % statements (`docs/coverage/frontend/`). El refresh single-flight de `base-query.ts` tiene test (`frontend/test/api/base-query.test.ts`). Parcial: los guards `RequireAuth`/`GuestOnly` no tienen test
 - [x] UX básica (feedback, validaciones) — `docs/03-frontend.md` §5
 - [x] Front dockerizado — `frontend/Dockerfile` (nginx-unprivileged, no-root)
 
@@ -152,4 +152,4 @@ Evaluación
 - [x] Análisis: respuesta del ejercicio 4 — `docs/04-diagnostico.md`
 - [x] Documento consolidado — `docs/Documentacion-Tecnica.pdf`
 
-Extra: servidor MCP (docs/06-mcp-server.md)
+Extra: servidor MCP (docs/06-mcp-server.md) y su sección de observabilidad y conexión en la interfaz (`frontend/src/pages/McpPage.tsx`, `docs/03-frontend.md` §2)

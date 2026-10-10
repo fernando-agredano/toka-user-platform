@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">64.7% </span>
+                <span class="strong">92% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>11/17</span>
+                <span class='fraction'>23/25</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">57.14% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/2</span>
+                <span class='fraction'>4/7</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">40% </span>
+                <span class="strong">85.71% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>2/5</span>
+                <span class='fraction'>6/7</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">88.88% </span>
+                <span class="strong">93.33% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>8/9</span>
+                <span class='fraction'>14/15</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line medium'></div>
+    <div class='status-line high'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -77,27 +77,61 @@
 <a name='L12'></a><a href='#L12'>12</a>
 <a name='L13'></a><a href='#L13'>13</a>
 <a name='L14'></a><a href='#L14'>14</a>
-<a name='L15'></a><a href='#L15'>15</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
+<a name='L15'></a><a href='#L15'>15</a>
+<a name='L16'></a><a href='#L16'>16</a>
+<a name='L17'></a><a href='#L17'>17</a>
+<a name='L18'></a><a href='#L18'>18</a>
+<a name='L19'></a><a href='#L19'>19</a>
+<a name='L20'></a><a href='#L20'>20</a>
+<a name='L21'></a><a href='#L21'>21</a>
+<a name='L22'></a><a href='#L22'>22</a>
+<a name='L23'></a><a href='#L23'>23</a>
+<a name='L24'></a><a href='#L24'>24</a>
+<a name='L25'></a><a href='#L25'>25</a>
+<a name='L26'></a><a href='#L26'>26</a>
+<a name='L27'></a><a href='#L27'>27</a>
+<a name='L28'></a><a href='#L28'>28</a>
+<a name='L29'></a><a href='#L29'>29</a>
+<a name='L30'></a><a href='#L30'>30</a>
+<a name='L31'></a><a href='#L31'>31</a>
+<a name='L32'></a><a href='#L32'>32</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">10x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">12x</span>
-<span class="cline-any cline-yes">12x</span>
+<span class="cline-any cline-yes">31x</span>
+<span class="cline-any cline-yes">31x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">30x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">const dateTimeFormat = new Intl.DateTimeFormat('es-MX', { dateStyle: 'medium', timeStyle: 'short' });
 const dateFormat = new Intl.DateTimeFormat('es-MX', { dateStyle: 'medium' });
 &nbsp;
-export const <span class="cstat-no" title="statement not covered" >formatDateTime = <span class="fstat-no" title="function not covered" >(</span>i</span>so: string) =&gt; <span class="cstat-no" title="statement not covered" >dateTimeFormat.format(new Date(iso));</span>
+export const formatDateTime = (iso: string) =&gt; dateTimeFormat.format(new Date(iso));
 export const formatDate = (iso: string) =&gt; dateFormat.format(new Date(iso));
 &nbsp;
-export const <span class="cstat-no" title="statement not covered" >shortId = <span class="fstat-no" title="function not covered" >(</span>i</span>d: string) =&gt; <span class="cstat-no" title="statement not covered" >id.slice(0, 8);</span>
+export const shortId = (id: string) =&gt; id.slice(0, 8);
 &nbsp;
 /** Date input value (yyyy-mm-dd) to the start or end of that day in UTC, as the audit API expects. */
 export const <span class="cstat-no" title="statement not covered" >dayBoundaryToIso = <span class="fstat-no" title="function not covered" >(</span>d</span>ate: string, boundary: 'start' | 'end') =&gt;
@@ -105,6 +139,23 @@ export const <span class="cstat-no" title="statement not covered" >dayBoundaryTo
 &nbsp;
 export const fullName = (user: { firstName: string; lastName: string }) =&gt;
   `${user.firstName} ${user.lastName}`;
+&nbsp;
+const relativeFormat = new Intl.RelativeTimeFormat('es', { numeric: 'auto' });
+const RELATIVE_UNITS: Array&lt;[Intl.RelativeTimeFormatUnit, number]&gt; = [
+  ['day', 86_400],
+  ['hour', 3_600],
+  ['minute', 60],
+];
+&nbsp;
+/** "hace 5 minutos", "ayer"… relative to `now`; anything under a minute reads as "ahora". */
+export const formatRelativeTime = (iso: string, now = Date.now()): string =&gt; {
+  const seconds = Math.round((new Date(iso).getTime() - now) / 1000);
+  const [unit, size] = RELATIVE_UNITS.find(([, unitSeconds]) =&gt; Math.abs(seconds) &gt;= unitSeconds) ?? [
+    'second',
+    1,
+  ];
+  return unit === 'second' ? 'ahora' : <span class="branch-1 cbranch-no" title="branch not covered" >relativeFormat.format(Math.round(seconds / size), unit);</span>
+};
 &nbsp;</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
@@ -112,7 +163,7 @@ export const fullName = (user: { firstName: string; lastName: string }) =&gt;
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-10-10T01:35:07.241Z
+                at 2026-10-10T04:27:43.294Z
             </div>
         <script src="../prettify.js"></script>
         <script>

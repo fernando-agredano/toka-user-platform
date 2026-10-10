@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">75% </span>
+                <span class="strong">77.77% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>6/8</span>
+                <span class='fraction'>7/9</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">71.42% </span>
+                <span class="strong">75% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>5/7</span>
+                <span class='fraction'>6/8</span>
             </div>
         
             
@@ -101,7 +101,21 @@
 <a name='L36'></a><a href='#L36'>36</a>
 <a name='L37'></a><a href='#L37'>37</a>
 <a name='L38'></a><a href='#L38'>38</a>
-<a name='L39'></a><a href='#L39'>39</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
+<a name='L39'></a><a href='#L39'>39</a>
+<a name='L40'></a><a href='#L40'>40</a>
+<a name='L41'></a><a href='#L41'>41</a>
+<a name='L42'></a><a href='#L42'>42</a>
+<a name='L43'></a><a href='#L43'>43</a>
+<a name='L44'></a><a href='#L44'>44</a>
+<a name='L45'></a><a href='#L45'>45</a>
+<a name='L46'></a><a href='#L46'>46</a>
+<a name='L47'></a><a href='#L47'>47</a>
+<a name='L48'></a><a href='#L48'>48</a>
+<a name='L49'></a><a href='#L49'>49</a>
+<a name='L50'></a><a href='#L50'>50</a>
+<a name='L51'></a><a href='#L51'>51</a>
+<a name='L52'></a><a href='#L52'>52</a>
+<a name='L53'></a><a href='#L53'>53</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -111,10 +125,20 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">6x</span>
-<span class="cline-any cline-yes">6x</span>
-<span class="cline-any cline-yes">6x</span>
-<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -131,6 +155,9 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -139,7 +166,8 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { Button } from './Button';
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { Icon } from './Icon';
 &nbsp;
 interface PaginationProps {
   page: number;
@@ -149,30 +177,44 @@ interface PaginationProps {
   disabled?: boolean;
 }
 &nbsp;
+const NAV_BUTTON =
+  'flex items-center gap-1.5 rounded-md border border-line px-3 py-1.5 text-sm font-medium text-ink transition-colors hover:border-primary hover:text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:border-line disabled:hover:text-ink';
+&nbsp;
 export const Pagination = ({ page, limit, total, onPageChange, disabled = <span class="branch-0 cbranch-no" title="branch not covered" >false </span>}: PaginationProps) =&gt; {
   const lastPage = Math.max(1, Math.ceil(total / limit));
   const from = total === 0 ? 0 : (page - 1) * limit + 1;
   const to = Math.min(page * limit, total);
 &nbsp;
   return (
-    &lt;div className="flex flex-wrap items-center justify-between gap-3 border-t border-line px-4 pt-4 text-sm"&gt;
+    &lt;div className="flex flex-wrap items-center justify-between gap-3 border-t border-line px-5 py-4 text-sm"&gt;
       &lt;span className="text-ink-soft"&gt;
-        {from}–{to} de {total}
+        &lt;span className="font-semibold text-ink"&gt;
+          {from}–{to}
+        &lt;/span&gt;{' '}
+        de {total}
       &lt;/span&gt;
-      &lt;div className="flex items-center gap-2"&gt;
-        &lt;Button variant="secondary" disabled={disabled || page &lt;= 1} onClick={<span class="fstat-no" title="function not covered" >() =&gt; <span class="cstat-no" title="statement not covered" >o</span>nPageChange(page - 1)}&gt;</span>
+      &lt;div className="flex items-center gap-3"&gt;
+        &lt;button
+          type="button"
+          className={NAV_BUTTON}
+          disabled={disabled || page &lt;= 1}
+          onClick={<span class="fstat-no" title="function not covered" >() =&gt; <span class="cstat-no" title="statement not covered" >o</span>nPageChange(page - 1)}</span>
+        &gt;
+          &lt;Icon name="chevronLeft" className="h-4 w-4" /&gt;
           Anterior
-        &lt;/Button&gt;
-        &lt;span className="px-2 text-ink-soft"&gt;
+        &lt;/button&gt;
+        &lt;span className="text-ink-soft"&gt;
           Página {page} de {lastPage}
         &lt;/span&gt;
-        &lt;Button
-          variant="secondary"
+        &lt;button
+          type="button"
+          className={NAV_BUTTON}
           disabled={disabled || page &gt;= lastPage}
           onClick={<span class="fstat-no" title="function not covered" >() =&gt; <span class="cstat-no" title="statement not covered" >o</span>nPageChange(page + 1)}</span>
         &gt;
           Siguiente
-        &lt;/Button&gt;
+          &lt;Icon name="chevronRight" className="h-4 w-4" /&gt;
+        &lt;/button&gt;
       &lt;/div&gt;
     &lt;/div&gt;
   );
@@ -184,7 +226,7 @@ export const Pagination = ({ page, limit, total, onPageChange, disabled = <span 
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-10-10T01:35:07.241Z
+                at 2026-10-10T04:27:43.294Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

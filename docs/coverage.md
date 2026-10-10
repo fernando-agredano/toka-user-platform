@@ -16,7 +16,7 @@ Es la métrica que valida `npm test -- --coverage`. Cada paquete mide el alcance
 | audit-service | 7 | 100% | 93.54% | 100% | 100% | [index.html](coverage/audit-service/index.html) |
 | ai-agent-service | 221 | 97.93% | 90.18% | 96.87% | 98.13% | [index.html](coverage/ai-agent-service/index.html) |
 | mcp-server (extra) | 52 | 100% | 87.34% | 100% | 100% | [index.html](coverage/mcp-server/index.html) |
-| frontend (Jest + RTL) | 32 | 79.91% | 62.84% | 68.69% | 82.50% | [index.html](coverage/frontend/index.html) |
+| frontend (Jest + RTL) | 51 | 87.67% | 74.66% | 80.50% | 89.78% | [index.html](coverage/frontend/index.html) |
 
 ## Alcance real de los servicios (medido, no configurado)
 

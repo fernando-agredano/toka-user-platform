@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">87.5% </span>
+                <span class="strong">88.88% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>7/8</span>
+                <span class='fraction'>8/9</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">83.33% </span>
+                <span class="strong">85.71% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>5/6</span>
+                <span class='fraction'>6/7</span>
             </div>
         
             
@@ -128,10 +128,20 @@
 <a name='L63'></a><a href='#L63'>63</a>
 <a name='L64'></a><a href='#L64'>64</a>
 <a name='L65'></a><a href='#L65'>65</a>
-<a name='L66'></a><a href='#L66'>66</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L66'></a><a href='#L66'>66</a>
+<a name='L67'></a><a href='#L67'>67</a>
+<a name='L68'></a><a href='#L68'>68</a>
+<a name='L69'></a><a href='#L69'>69</a>
+<a name='L70'></a><a href='#L70'>70</a>
+<a name='L71'></a><a href='#L71'>71</a>
+<a name='L72'></a><a href='#L72'>72</a>
+<a name='L73'></a><a href='#L73'>73</a>
+<a name='L74'></a><a href='#L74'>74</a>
+<a name='L75'></a><a href='#L75'>75</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -141,8 +151,8 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -153,7 +163,9 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -193,32 +205,41 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import type { ChatResponse } from '@/@types/api';
 import { Badge } from '../ui/Badge';
+import { Icon } from '../ui/Icon';
 &nbsp;
 const qualityTone = (score: number) =&gt; (score &gt;= 0.8 ? 'success' : <span class="branch-1 cbranch-no" title="branch not covered" >score &gt;= 0.5 ? 'warning' : 'danger');</span>
 &nbsp;
 const MetricItem = ({ label, value }: { label: string; value: string }) =&gt; (
   &lt;div&gt;
-    &lt;dt className="text-xs text-ink-soft"&gt;{label}&lt;/dt&gt;
-    &lt;dd className="text-sm font-semibold text-ink"&gt;{value}&lt;/dd&gt;
+    &lt;dt className="text-[11px] text-ink-muted"&gt;{label}&lt;/dt&gt;
+    &lt;dd className="text-xs font-semibold text-ink"&gt;{value}&lt;/dd&gt;
   &lt;/div&gt;
 );
 &nbsp;
-/** Answer text plus everything the agent reports about how it got there: sources, tools, metrics, quality. */
+/** Answer text plus what the agent reports about how it got there: sources, tools, metrics, quality. */
 export const AssistantMessage = ({ response }: { response: ChatResponse }) =&gt; {
   const { answer, sources, toolsUsed, metrics, quality } = response;
 &nbsp;
   return (
-    &lt;div className="space-y-4"&gt;
-      &lt;p className="whitespace-pre-wrap text-sm text-ink"&gt;{answer}&lt;/p&gt;
+    &lt;div className="space-y-3"&gt;
+      &lt;p className="whitespace-pre-wrap text-sm leading-relaxed text-ink"&gt;{answer}&lt;/p&gt;
 &nbsp;
       {sources.length &gt; 0 &amp;&amp; (
         &lt;section&gt;
-          &lt;h3 className="mb-1 text-xs font-semibold uppercase tracking-wide text-ink-soft"&gt;Fuentes&lt;/h3&gt;
-          &lt;ul className="space-y-1"&gt;
+          &lt;h3 className="mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-ink-muted"&gt;
+            Fuentes
+          &lt;/h3&gt;
+          &lt;ul className="space-y-1.5"&gt;
             {sources.map((source, index) =&gt; (
-              &lt;li key={source.id} className="rounded-sm bg-page p-2 text-xs text-ink-soft"&gt;
+              &lt;li key={source.id} className="rounded-md bg-page p-2.5 text-xs text-ink-soft"&gt;
                 &lt;span className="font-medium text-ink"&gt;
                   [{source.id}] {source.title ?? <span class="branch-1 cbranch-no" title="branch not covered" >source.source </span>?? <span class="branch-2 cbranch-no" title="branch not covered" >`Fuente ${index + 1}`}</span>
                 &lt;/span&gt;
@@ -242,19 +263,25 @@ export const AssistantMessage = ({ response }: { response: ChatResponse }) =&gt;
         &lt;/div&gt;
       )}
 &nbsp;
-      &lt;dl className="grid grid-cols-2 gap-3 border-t border-line pt-3 sm:grid-cols-6"&gt;
-        &lt;MetricItem label="Modelo" value={metrics.provider ?? <span class="branch-1 cbranch-no" title="branch not covered" >'—'} /&gt;</span>
-        &lt;MetricItem label="Latencia" value={`${metrics.latencyMs} ms`} /&gt;
-        &lt;MetricItem label="Tokens (in/out)" value={`${metrics.inputTokens}/${metrics.outputTokens}`} /&gt;
-        &lt;MetricItem label="Costo" value={`$${metrics.costUsd.toFixed(6)}`} /&gt;
-        &lt;MetricItem label="Caché" value={metrics.cached ? <span class="branch-0 cbranch-no" title="branch not covered" >'Sí' : '</span>No'} /&gt;
-        &lt;div&gt;
-          &lt;dt className="text-xs text-ink-soft"&gt;Calidad&lt;/dt&gt;
-          &lt;dd&gt;
-            &lt;Badge tone={qualityTone(quality.score)}&gt;{Math.round(quality.score * 100)}%&lt;/Badge&gt;
-          &lt;/dd&gt;
-        &lt;/div&gt;
-      &lt;/dl&gt;
+      &lt;details className="group border-t border-line pt-2"&gt;
+        &lt;summary className="flex cursor-pointer list-none items-center justify-between text-xs font-medium text-ink-soft hover:text-primary"&gt;
+          Detalles técnicos
+          &lt;Icon name="chevronDown" className="h-4 w-4 transition-transform group-open:rotate-180" /&gt;
+        &lt;/summary&gt;
+        &lt;dl className="mt-3 grid grid-cols-3 gap-3"&gt;
+          &lt;MetricItem label="Modelo" value={metrics.provider ?? <span class="branch-1 cbranch-no" title="branch not covered" >'—'} /&gt;</span>
+          &lt;MetricItem label="Latencia" value={`${metrics.latencyMs} ms`} /&gt;
+          &lt;MetricItem label="Tokens (in/out)" value={`${metrics.inputTokens}/${metrics.outputTokens}`} /&gt;
+          &lt;MetricItem label="Costo" value={`$${metrics.costUsd.toFixed(6)}`} /&gt;
+          &lt;MetricItem label="Caché" value={metrics.cached ? <span class="branch-0 cbranch-no" title="branch not covered" >'Sí' : '</span>No'} /&gt;
+          &lt;div&gt;
+            &lt;dt className="text-[11px] text-ink-muted"&gt;Calidad&lt;/dt&gt;
+            &lt;dd&gt;
+              &lt;Badge tone={qualityTone(quality.score)}&gt;{Math.round(quality.score * 100)}%&lt;/Badge&gt;
+            &lt;/dd&gt;
+          &lt;/div&gt;
+        &lt;/dl&gt;
+      &lt;/details&gt;
     &lt;/div&gt;
   );
 };
@@ -265,7 +292,7 @@ export const AssistantMessage = ({ response }: { response: ChatResponse }) =&gt;
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-10-10T01:35:07.241Z
+                at 2026-10-10T04:27:43.294Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

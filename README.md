@@ -122,11 +122,19 @@ La primera vez tarda varios minutos porque construye las imágenes; el modelo de
 
 ## Credenciales y URLs
 
-Usuario administrador semilla (configurable con `SEED_ADMIN_EMAIL` y `SEED_ADMIN_PASSWORD`):
+El usuario administrador se crea solo al arrancar (configurable con `SEED_ADMIN_EMAIL` y `SEED_ADMIN_PASSWORD`). Para probar los otros roles, un comando crea dos cuentas de ejemplo (es seguro repetirlo):
 
-| Email | Contraseña | Rol |
-|---|---|---|
-| `admin@toka.local` | `Admin123!` | ADMIN |
+```bash
+npm run review:seed
+```
+
+| Email | Contraseña | Rol | Qué ve en la aplicación |
+|---|---|---|---|
+| `admin@toka.local` | `Admin123!` | ADMIN | Todo: usuarios, roles, auditoría, servidor MCP y asistente |
+| `manager@toka.local` | `Demo1234!` | MANAGER | Usuarios (lectura y escritura), roles (solo lectura), auditoría, servidor MCP y asistente |
+| `user@toka.local` | `Demo1234!` | USER | Solo el inicio y el asistente: no ve usuarios, roles ni auditoría |
+
+También puedes registrarte desde la pantalla de registro (la cuenta nueva recibe el rol USER) o, como admin, crear usuarios y asignarles roles desde la aplicación.
 
 | Qué | URL |
 |---|---|
@@ -136,7 +144,7 @@ Usuario administrador semilla (configurable con `SEED_ADMIN_EMAIL` y `SEED_ADMIN
 | Consola de RabbitMQ | http://localhost:15672 (usuario `toka`, contraseña `toka_dev_pwd`) |
 | Frontend en desarrollo (recarga en caliente, opcional) | http://localhost:5173 (requiere el stack arriba) |
 
-Para ver el flujo completo: entra a la SPA con el admin, crea un usuario en **Usuarios**, asigna un rol en **Roles**, revisa los eventos en **Auditoría** y pregunta algo en **Asistente**.
+Para ver el flujo completo: entra a la SPA con el admin, crea un usuario en **Usuarios**, asigna un rol en **Roles**, revisa los eventos en **Auditoría**, mira la actividad de los asistentes en **Servidor MCP** y pregunta algo al asistente con el botón flotante de la esquina.
 
 ## Tests y coverage
 
@@ -150,7 +158,7 @@ npm run test:all
 
 `npm run test:all` ejecuta con `CI=true` los tests de `packages/common`, de los cinco servicios y del frontend, con `--verbose` (cada test aparece con ✓) y `--coverage`. Al final imprime una tabla con el coverage de cada paquete.
 
-Resultado de la última ejecución verificada: **502 tests pasando, 0 fallos**; coverage de statements entre 80 % (frontend, incluye componentes fuera del alcance) y 100 % (audit-service). El detalle de qué mide cada umbral está en [docs/coverage.md](docs/coverage.md).
+Resultado de la última ejecución verificada: **521 tests pasando, 0 fallos**; coverage de statements entre 88 % (frontend, incluye componentes fuera del alcance) y 100 % (audit-service y mcp-server). El detalle de qué mide cada umbral está en [docs/coverage.md](docs/coverage.md).
 
 Reporte HTML de cada paquete (se genera con `test:all`):
 
@@ -171,12 +179,13 @@ Con el stack arriba (`docker compose up -d`), cada comprobación es un solo coma
 | Qué revisar | Comando | Resultado |
 |---|---|---|
 | Auditoría | `npm run review:audit` | Estadísticas por tipo de evento y los últimos 10 eventos. Para filtrar: `npm run review:audit -- mcp.tool.invoked 5` (tipo y cantidad) |
+| Usuarios de ejemplo | `npm run review:seed` | Crea `manager@toka.local` (MANAGER) y `user@toka.local` (USER), ambos con contraseña `Demo1234!`. Seguro de repetir |
 | Servidor MCP | `npm run review:mcp` | Registra el servidor `toka` en Claude Code. El token se renueva solo en cada conexión (`headersHelper`), así que no caduca. Después abre una sesión de Claude Code y escribe `/mcp` |
 | Logs de un servicio | `npm run review:logs -- auth-service` | Últimas 50 líneas (JSON con `correlationId`). Servicios: `user-service`, `role-service`, `audit-service`, `ai-agent-service`, `mcp-server`, `gateway` |
-| Tests | `npm run test:all` | 502 tests y la tabla de coverage al final |
+| Tests | `npm run test:all` | 521 tests y la tabla de coverage al final |
 | Reportes de coverage | `open docs/coverage/auth-service/index.html` | Un reporte HTML por paquete en `docs/coverage/`, con tema claro/oscuro. `npm run test:all` ya aplica el tema al terminar; si regeneras un reporte por separado, corre `npm run coverage:style` |
 | Colas de RabbitMQ | http://localhost:15672 (`toka` / `toka_dev_pwd`) | Las colas deben tener `Ready` en 0 y `toka.dlq` debe estar vacía |
-| Aplicación web | http://localhost:8080 (`admin@toka.local` / `Admin123!`) | Usuarios, Roles, Auditoría y Asistente IA |
+| Aplicación web | http://localhost:8080 (`admin@toka.local` / `Admin123!`) | Usuarios, Roles, Auditoría, Servidor MCP y el asistente IA (botón flotante) |
 
 Para otra cuenta o URL: variables `TOKA_EMAIL`, `TOKA_PASSWORD` y `TOKA_API_URL`.
 
@@ -226,8 +235,9 @@ Módulos adicionales que no forman parte de los entregables de la prueba.
 | Extra | Archivo |
 |---|---|
 | Servidor MCP: expone la plataforma a Claude Desktop, Claude Code y Cursor con los permisos del usuario (tools, resources, prompts, confirmación de acciones destructivas y auditoría) | [docs/06-mcp-server.md](docs/06-mcp-server.md) y [services/mcp-server/](services/mcp-server/) |
+| Sección **Servidor MCP** de la interfaz (`/mcp`): actividad de los asistentes (llamadas, resultados, herramientas más usadas, últimas invocaciones) y cómo conectar uno | [docs/03-frontend.md](docs/03-frontend.md#2-pantallas) y [docs/06-mcp-server.md](docs/06-mcp-server.md#desde-la-interfaz-web) |
 
-Se conecta con `claude mcp add --transport http toka http://localhost:8080/mcp --header "Authorization: Bearer <token>"`.
+Para conectarlo a Claude Code con renovación automática del token: `npm run review:mcp`. A mano: `claude mcp add --transport http toka http://localhost:8080/mcp --header "Authorization: Bearer <token>"`.
 
 ## Estructura del repositorio
 
@@ -241,7 +251,7 @@ Se conecta con `claude mcp add --transport http toka http://localhost:8080/mcp -
 │  └─ ai-agent-service/   además: knowledge/ (base de conocimiento) y eval/ (evaluación de recuperación y del agente)
 ├─ frontend/              SPA React + Redux Toolkit (fuera de los workspaces de npm)
 ├─ scripts/
-│  ├─ review/             comandos de revisión: auditoría, conexión del MCP (npm run review:*)
+│  ├─ review/             comandos de revisión: auditoría, usuarios de ejemplo, conexión del MCP (npm run review:*)
 │  ├─ build-docs-pdf/     generador del PDF (npm run docs:pdf)
 │  ├─ coverage-summary.mjs  tabla final de npm run test:all
 │  └─ style-coverage.mjs  tema de los reportes HTML de coverage

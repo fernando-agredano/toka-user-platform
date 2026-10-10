@@ -138,6 +138,14 @@ claude mcp add --transport http toka http://localhost:8080/mcp \
   --header "Authorization: Bearer <token>"
 ```
 
+El token caduca a los 15 minutos. Para no renovarlo a mano, desde el repositorio:
+
+```bash
+npm run review:mcp
+```
+
+registra el servidor con `headersHelper` (opción de Claude Code para servidores HTTP): en cada conexión, y de nuevo ante un 401 o 403, Claude Code ejecuta `scripts/review/mcp-headers.mjs`, que inicia sesión y devuelve un `Authorization` recién emitido. Así no se guarda ningún token. Se verificó que `claude mcp list` muestra el servidor `toka` como conectado; no se esperó a que pasaran 15 minutos para observar la renovación en una sesión larga.
+
 ### Claude Desktop y Cursor
 
 Claude Desktop (`claude_desktop_config.json`) y Cursor (`.cursor/mcp.json`) pueden conectar por HTTP con un puente o, sin Docker, por **stdio** con el servidor compilado (`npm run build -w services/mcp-server`):
@@ -179,6 +187,15 @@ npx @modelcontextprotocol/inspector
 ```
 
 En la interfaz elige el transporte *Streamable HTTP*, la URL `http://localhost:8080/mcp` y añade el header `Authorization: Bearer <token>`.
+
+### Desde la interfaz web
+
+La aplicación incluye una sección **Servidor MCP** (`/mcp`, permiso `audit:read`) pensada para observar y conectar el módulo, no para usarlo: el MCP lo consumen los asistentes, no el navegador.
+
+- **Actividad.** Llamadas totales, porcentaje de éxito, llamadas bloqueadas (sin permiso o por el límite de 30/min), duración media, herramientas más usadas, distribución de resultados (`success`, `preview`, `denied`, `rate_limited`, `error`) y las últimas invocaciones. Sale de los eventos `mcp.tool.invoked` que el servidor publica en cada llamada, así que la auditoría y esta pantalla muestran lo mismo, incluidas las llamadas rechazadas. La API de auditoría no agrega por herramienta; el total es histórico y el resto se calcula sobre las últimas 100 llamadas, y la pantalla lo indica.
+- **Conectar un asistente.** La URL del servidor y el comando `claude mcp add`, con botón de copiar, más un resumen de qué puede hacer (11 herramientas: 7 de lectura, 2 de escritura y 2 destructivas que piden confirmación). La URL se calcula con el origen desde el que se abre la aplicación; en desarrollo, Vite reenvía `/mcp` al gateway igual que `/api`.
+
+Detalle de la pantalla en [03-frontend.md](03-frontend.md#2-pantallas).
 
 ### Verificación automatizada
 
@@ -263,7 +280,7 @@ Con fuentes `02-politica-contrasenas-seguridad.md` (score 0,62) y `04-faq-soport
 
 **stdio:** el binario `dist/stdio.js`, lanzado con el cliente stdio del SDK (`TOKA_ACCESS_TOKEN`, `TOKA_API_URL=http://localhost:8080`), listó las 11 tools y ejecutó `get_audit_stats` y `search_users`.
 
-**No verificado:** MCP Inspector (la CLI v1 rechazó la forma de pasar el header en las pruebas, así que no se usó; las instrucciones de la sección 5 para su interfaz web son las documentadas por el proyecto), Claude Desktop y Cursor, y `claude mcp add` contra el gateway. La compatibilidad con ellos se apoya en usar el SDK oficial y el transporte estándar, no en haberlos ejecutado.
+**No verificado:** MCP Inspector (la CLI v1 rechazó la forma de pasar el header en las pruebas, así que no se usó; las instrucciones de la sección 5 para su interfaz web son las documentadas por el proyecto), Claude Desktop y Cursor, y las herramientas ejecutadas desde Claude Code (solo se comprobó que conecta). La compatibilidad con ellos se apoya en usar el SDK oficial y el transporte estándar, no en haberlos ejecutado.
 
 ## 7. Decisiones técnicas y mejoras
 

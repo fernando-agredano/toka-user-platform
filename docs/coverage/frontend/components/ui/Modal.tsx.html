@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">22.22% </span>
+                <span class="strong">90.9% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>2/9</span>
+                <span class='fraction'>10/11</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">25% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/2</span>
+                <span class='fraction'>1/4</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">75% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/4</span>
+                <span class='fraction'>3/4</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">33.33% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>2/6</span>
+                <span class='fraction'>8/8</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line low'></div>
+    <div class='status-line high'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -98,7 +98,29 @@
 <a name='L33'></a><a href='#L33'>33</a>
 <a name='L34'></a><a href='#L34'>34</a>
 <a name='L35'></a><a href='#L35'>35</a>
-<a name='L36'></a><a href='#L36'>36</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
+<a name='L36'></a><a href='#L36'>36</a>
+<a name='L37'></a><a href='#L37'>37</a>
+<a name='L38'></a><a href='#L38'>38</a>
+<a name='L39'></a><a href='#L39'>39</a>
+<a name='L40'></a><a href='#L40'>40</a>
+<a name='L41'></a><a href='#L41'>41</a>
+<a name='L42'></a><a href='#L42'>42</a>
+<a name='L43'></a><a href='#L43'>43</a>
+<a name='L44'></a><a href='#L44'>44</a>
+<a name='L45'></a><a href='#L45'>45</a>
+<a name='L46'></a><a href='#L46'>46</a>
+<a name='L47'></a><a href='#L47'>47</a>
+<a name='L48'></a><a href='#L48'>48</a>
+<a name='L49'></a><a href='#L49'>49</a>
+<a name='L50'></a><a href='#L50'>50</a>
+<a name='L51'></a><a href='#L51'>51</a>
+<a name='L52'></a><a href='#L52'>52</a>
+<a name='L53'></a><a href='#L53'>53</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">7x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -106,11 +128,23 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -134,22 +168,30 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { type ReactNode, useEffect } from 'react';
+import { Icon } from './Icon';
+&nbsp;
+type Size = 'sm' | 'md' | 'lg';
+&nbsp;
+const SIZE_CLASSES: Record&lt;Size, string&gt; = { sm: 'max-w-sm', md: 'max-w-md', lg: 'max-w-2xl' };
 &nbsp;
 interface ModalProps {
   title: string;
   onClose: () =&gt; void;
+  size?: Size;
+  /** Optional emblem shown above the title (e.g. the confirmation icon). */
+  icon?: ReactNode;
   children: ReactNode;
 }
 &nbsp;
-export const <span class="cstat-no" title="statement not covered" >Modal = <span class="fstat-no" title="function not covered" >(</span>{</span> title, onClose, children }: ModalProps) =&gt; {
-<span class="cstat-no" title="statement not covered" >  useEffect(<span class="fstat-no" title="function not covered" >() =&gt; {</span></span>
-    const closeOnEscape = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >(e</span>vent: KeyboardEvent) =&gt; <span class="cstat-no" title="statement not covered" >event.key === 'Escape' &amp;&amp; onClose();</span></span>
-<span class="cstat-no" title="statement not covered" >    document.addEventListener('keydown', closeOnEscape);</span>
-<span class="cstat-no" title="statement not covered" >    return <span class="fstat-no" title="function not covered" >() =&gt; <span class="cstat-no" title="statement not covered" >d</span>ocument.removeEventListener('keydown', closeOnEscape);</span></span>
+export const Modal = ({ title, onClose, size = <span class="branch-0 cbranch-no" title="branch not covered" >'md',</span> icon, children }: ModalProps) =&gt; {
+  useEffect(() =&gt; {
+    const closeOnEscape = <span class="fstat-no" title="function not covered" >(e</span>vent: KeyboardEvent) =&gt; <span class="cstat-no" title="statement not covered" >event.key === 'Escape' &amp;&amp; onClose();</span>
+    document.addEventListener('keydown', closeOnEscape);
+    return () =&gt; document.removeEventListener('keydown', closeOnEscape);
   }, [onClose]);
 &nbsp;
   return (
-    &lt;div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 p-4"&gt;
+    &lt;div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"&gt;
       &lt;button
         type="button"
         aria-label="Cerrar"
@@ -160,9 +202,18 @@ export const <span class="cstat-no" title="statement not covered" >Modal = <span
         open
         aria-modal="true"
         aria-label={title}
-        className="relative m-0 w-full max-w-md rounded-lg bg-card p-6 text-ink shadow-lg"
+        className={`relative m-0 max-h-[calc(100dvh-2rem)] w-full animate-pop-in overflow-y-auto rounded-xl bg-card p-8 text-ink shadow-xl motion-reduce:animate-none ${SIZE_CLASSES[size]}`}
       &gt;
-        &lt;h2 className="mb-4 text-lg font-semibold text-ink"&gt;{title}&lt;/h2&gt;
+        &lt;button
+          type="button"
+          aria-label="Cerrar ventana"
+          onClick={onClose}
+          className="absolute right-4 top-4 rounded-md p-1.5 text-ink-muted transition-colors hover:bg-primary-soft hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+        &gt;
+          &lt;Icon name="x" className="h-5 w-5" /&gt;
+        &lt;/button&gt;
+        {icon &amp;&amp; &lt;div className="mb-4 flex justify-center"&gt;{icon}&lt;/div&gt;}
+        &lt;h2 className="mb-6 text-center text-xl font-bold text-ink"&gt;{title}&lt;/h2&gt;
         {children}
       &lt;/dialog&gt;
     &lt;/div&gt;
@@ -175,7 +226,7 @@ export const <span class="cstat-no" title="statement not covered" >Modal = <span
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-10-10T01:35:07.241Z
+                at 2026-10-10T04:27:43.294Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

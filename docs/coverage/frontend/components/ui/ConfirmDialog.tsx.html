@@ -23,16 +23,16 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">66.66% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>2/3</span>
+                <span class='fraction'>4/4</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">44.44% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/4</span>
+                <span class='fraction'>4/9</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">66.66% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>2/3</span>
+                <span class='fraction'>4/4</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line medium'></div>
+    <div class='status-line high'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -97,8 +97,27 @@
 <a name='L32'></a><a href='#L32'>32</a>
 <a name='L33'></a><a href='#L33'>33</a>
 <a name='L34'></a><a href='#L34'>34</a>
-<a name='L35'></a><a href='#L35'>35</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
+<a name='L35'></a><a href='#L35'>35</a>
+<a name='L36'></a><a href='#L36'>36</a>
+<a name='L37'></a><a href='#L37'>37</a>
+<a name='L38'></a><a href='#L38'>38</a>
+<a name='L39'></a><a href='#L39'>39</a>
+<a name='L40'></a><a href='#L40'>40</a>
+<a name='L41'></a><a href='#L41'>41</a>
+<a name='L42'></a><a href='#L42'>42</a>
+<a name='L43'></a><a href='#L43'>43</a>
+<a name='L44'></a><a href='#L44'>44</a>
+<a name='L45'></a><a href='#L45'>45</a>
+<a name='L46'></a><a href='#L46'>46</a>
+<a name='L47'></a><a href='#L47'>47</a>
+<a name='L48'></a><a href='#L48'>48</a>
+<a name='L49'></a><a href='#L49'>49</a>
+<a name='L50'></a><a href='#L50'>50</a>
+<a name='L51'></a><a href='#L51'>51</a>
+<a name='L52'></a><a href='#L52'>52</a>
+<a name='L53'></a><a href='#L53'>53</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-yes">7x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -110,7 +129,24 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -132,34 +168,52 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { Button } from './Button';
+import { Icon } from './Icon';
 import { Modal } from './Modal';
 &nbsp;
-interface ConfirmDialogProps {
+export interface ConfirmOptions {
   title: string;
   message: string;
-  confirmLabel: string;
+  confirmLabel?: string;
+  cancelLabel?: string;
+  /** Styles the dialog and the confirm button as a risky action. */
   destructive?: boolean;
-  loading?: boolean;
+}
+&nbsp;
+interface ConfirmDialogProps extends ConfirmOptions {
   onConfirm: () =&gt; void;
   onCancel: () =&gt; void;
 }
 &nbsp;
-export const <span class="cstat-no" title="statement not covered" >ConfirmDialog = (</span>{
+export const ConfirmDialog = ({
   title,
   message,
-  confirmLabel,
+  confirmLabel = <span class="branch-0 cbranch-no" title="branch not covered" >'Confirmar',</span>
+  cancelLabel = 'Cancelar',
   destructive = <span class="branch-0 cbranch-no" title="branch not covered" >false,</span>
-  loading = <span class="branch-0 cbranch-no" title="branch not covered" >false,</span>
   onConfirm,
   onCancel,
 }: ConfirmDialogProps) =&gt; (
-  &lt;Modal title={title} onClose={onCancel}&gt;
-    &lt;p className="text-sm text-ink-soft"&gt;{message}&lt;/p&gt;
-    &lt;div className="mt-6 flex justify-end gap-3"&gt;
-      &lt;Button variant="secondary" onClick={onCancel}&gt;
-        Cancelar
+  &lt;Modal
+    title={title}
+    size="sm"
+    onClose={onCancel}
+    icon={
+      &lt;span
+        className={`flex h-14 w-14 items-center justify-center rounded-full ${
+          destructive ? 'bg-danger-soft text-danger' : <span class="branch-1 cbranch-no" title="branch not covered" >'bg-primary-soft text-primary'</span>
+        }`}
+      &gt;
+        &lt;Icon name={destructive ? 'alert' : <span class="branch-1 cbranch-no" title="branch not covered" >'info'} c</span>lassName="h-7 w-7" /&gt;
+      &lt;/span&gt;
+    }
+  &gt;
+    &lt;p className="-mt-3 text-center text-sm text-ink-soft"&gt;{message}&lt;/p&gt;
+    &lt;div className="mt-8 grid grid-cols-2 gap-3"&gt;
+      &lt;Button variant="secondary" size="lg" onClick={onCancel}&gt;
+        {cancelLabel}
       &lt;/Button&gt;
-      &lt;Button variant={destructive ? 'danger' : 'primary'} loading={loading} onClick={onConfirm}&gt;
+      &lt;Button variant={destructive ? 'danger' : <span class="branch-1 cbranch-no" title="branch not covered" >'primary'} s</span>ize="lg" onClick={onConfirm}&gt;
         {confirmLabel}
       &lt;/Button&gt;
     &lt;/div&gt;
@@ -172,7 +226,7 @@ export const <span class="cstat-no" title="statement not covered" >ConfirmDialog
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-10-10T01:35:07.241Z
+                at 2026-10-10T04:27:43.294Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

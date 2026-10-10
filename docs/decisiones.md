@@ -210,3 +210,23 @@ En stdio no hay acceso a Redis ni a RabbitMQ: el rate limit es en memoria por pr
 ### 60. Versión del SDK y compilación
 `@modelcontextprotocol/sdk` se fija en 1.30.1 (la 1.31+ tiene menos de dos semanas). El servicio compila con `module: node16` porque el SDK expone sus rutas mediante `exports`, que `moduleResolution: node` no resuelve. En los tests ts-jest corre con `isolatedModules` (los tipos genéricos de zod del SDK agotaban la memoria al comprobar tipos en Jest); los tipos se verifican con `npm run typecheck -w services/mcp-server`.
 
+
+## Fase 12.2 (rediseño del frontend y observabilidad del MCP)
+
+### 61. Un solo acento y colores de estado reservados
+Se retiró el modo oscuro y los colores por tarjeta: la interfaz usa neutros, un único acento morado y los colores de estado (verde, rojo, ámbar) solo para éxito, error y advertencia. Las gráficas usan una sola tonalidad cuando hay una serie; cuando hay varias (resultados de las llamadas MCP, inicios de sesión) cada segmento tiene además etiqueta y conteo en una leyenda, de modo que el color nunca es la única señal. Trade-off: menos expresividad visual a cambio de coherencia y de que el color signifique algo.
+
+### 62. Desplegables en un portal, no dentro del contenedor
+El dropdown y el calendario propios se dibujan en un portal sobre `document.body` y se posicionan con las coordenadas del elemento que los abre (`FloatingPanel`). El primer intento, con `position: absolute` dentro del contenedor, se cortaba en cuanto un ancestro tenía `overflow` (columnas con scroll, tarjetas con `overflow-hidden`). El portal elimina esa clase de errores y permite abrir hacia arriba cuando abajo no hay espacio. Coste: hay que tratar el panel como parte del componente al detectar clics fuera (`useDismissable` acepta varias referencias).
+
+### 63. Confirmaciones y notificaciones como servicios de la aplicación
+Las confirmaciones usan un proveedor con una función asíncrona (`if (await confirm({...}))`) en lugar de un estado y un diálogo por pantalla: hay un solo diálogo y se reutiliza donde haga falta. Los toasts tienen cuatro tipos y se guardan además en un centro de notificaciones (campana del encabezado), alimentado por un listener del store; para quien puede leer auditoría se añade una consulta cada 30 s de las estadísticas para avisar de inicios fallidos y bloqueos nuevos. Trade-off: el sondeo es simple y barato, pero no es tiempo real; un canal de eventos al navegador (SSE o WebSocket) sería lo correcto si hiciera falta inmediatez.
+
+### 64. El asistente deja de ser una sección
+El chat pasó de página a botón flotante que abre un panel, para poder consultar al agente desde cualquier pantalla sin perder el contexto. El panel permanece montado al cerrarse, así que la conversación se conserva. Se quitó de la tabla de navegación (y con ello del menú, de las tarjetas de inicio y de las rutas); sigue condicionado al permiso `ai:use`.
+
+### 65. Sección «Servidor MCP» en la interfaz, sin tocar el backend
+El MCP lo consumen asistentes, no el navegador, así que la interfaz no lo «usa»: lo **observa** y explica cómo conectarlo. La actividad se calcula a partir de los eventos `mcp.tool.invoked` que ya publica el servidor, consultando `GET /api/audit?type=mcp.tool.invoked`. La API de auditoría solo agrega por tipo de evento, no por herramienta, así que el total es histórico y las distribuciones (herramientas, resultados, duración media) se calculan en el cliente sobre las últimas 100 llamadas; la pantalla lo declara. Alternativa descartada por ahora: un endpoint de agregación en audit-service (más exacto, pero cambia el backend de un módulo extra). Requiere `audit:read`. En desarrollo Vite reenvía también `/mcp` al gateway para que la URL mostrada funcione.
+
+### 66. Usuarios de ejemplo reproducibles
+Una instalación limpia solo tiene el administrador semilla, lo que impide ver cómo cambia la interfaz según el rol. `npm run review:seed` crea un gerente y un usuario (por la API pública: registro y asignación de rol como admin), es idempotente y reintenta la búsqueda del perfil porque este se crea de forma asíncrona tras el registro. No se añadieron al seed del arranque para no meter credenciales de prueba en el despliegue por defecto.
