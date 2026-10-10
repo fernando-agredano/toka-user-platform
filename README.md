@@ -174,7 +174,7 @@ Con el stack arriba (`docker compose up -d`), cada comprobación es un solo coma
 | Servidor MCP | `npm run review:mcp` | Registra el servidor `toka` en Claude Code. El token se renueva solo en cada conexión (`headersHelper`), así que no caduca. Después abre una sesión de Claude Code y escribe `/mcp` |
 | Logs de un servicio | `npm run review:logs -- auth-service` | Últimas 50 líneas (JSON con `correlationId`). Servicios: `user-service`, `role-service`, `audit-service`, `ai-agent-service`, `mcp-server`, `gateway` |
 | Tests | `npm run test:all` | 499 tests y la tabla de coverage al final |
-| Reportes de coverage | `open docs/coverage/auth-service/index.html` | Un reporte HTML por paquete en `docs/coverage/` |
+| Reportes de coverage | `open docs/coverage/auth-service/index.html` | Un reporte HTML por paquete en `docs/coverage/`, con tema claro/oscuro. `npm run test:all` ya aplica el tema al terminar; si regeneras un reporte por separado, corre `npm run coverage:style` |
 | Colas de RabbitMQ | http://localhost:15672 (`toka` / `toka_dev_pwd`) | Las colas deben tener `Ready` en 0 y `toka.dlq` debe estar vacía |
 | Aplicación web | http://localhost:8080 (`admin@toka.local` / `Admin123!`) | Usuarios, Roles, Auditoría y Asistente IA |
 

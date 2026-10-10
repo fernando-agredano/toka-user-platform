@@ -12,11 +12,12 @@
   "scripts": {
     "build": "npm run build --workspaces --if-present",
     "test": "npm test --workspaces --if-present",
-    "test:all": "CI=true npm test --workspaces --if-present -- --verbose --coverage --coverageReporters text html json-summary && (cd frontend && CI=true npm test -- --verbose --reporters=default --coverage --coverageReporters text html json-summary) && node scripts/coverage-summary.mjs",
+    "test:all": "CI=true npm test --workspaces --if-present -- --verbose --coverage --coverageReporters text html json-summary && (cd frontend && CI=true npm test -- --verbose --reporters=default --coverage --coverageReporters text html json-summary) && node scripts/coverage-summary.mjs && npm run -s coverage:style",
     "docs:pdf": "node scripts/build-docs-pdf/index.mjs",
     "review:audit": "node scripts/review/audit.mjs",
     "review:mcp": "node scripts/review/mcp-connect.mjs",
-    "review:logs": "docker compose logs --tail 50"
+    "review:logs": "docker compose logs --tail 50",
+    "coverage:style": "node scripts/style-coverage.mjs"
   },
   "devDependencies": {
     "@fontsource/inter": "^5.3.0",
