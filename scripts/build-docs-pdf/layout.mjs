@@ -169,7 +169,7 @@ function summaryHtml({ kpis, aggregate, coverage }) {
 
 <h2>Indicadores clave</h2>
 <div class="kpi-row">${cards}</div>
-<p class="kpi-note">Cobertura: media de líneas de ${coverage.length} paquetes (servicios, <code>@toka/common</code> y frontend); el umbral de 70% de los servicios mide dominio y aplicación. Endpoints y eventos: contratos de CONTEXTO.md. <strong>Módulo extra</strong>, fuera de los requisitos: un servidor MCP (sección 8) expone la plataforma a Claude Desktop, Claude Code y Cursor con los permisos del usuario; sus tests y cobertura figuran en los indicadores, pero el conteo de microservicios solo incluye los cinco de la prueba.</p>
+<p class="kpi-note">Cobertura: media de líneas de ${coverage.length} paquetes (servicios, <code>@toka/common</code> y frontend); el umbral de 70% de los servicios mide dominio y aplicación. Endpoints: rutas de los controladores de los cinco servicios; eventos: catálogo de la sección 1. <strong>Módulo extra</strong>, fuera de los requisitos: un servidor MCP (sección 8) expone la plataforma a Claude Desktop, Claude Code y Cursor con los permisos del usuario; sus tests y cobertura figuran en los indicadores, pero el conteo de microservicios solo incluye los cinco de la prueba.</p>
 <aside class="callout warning"><span class="callout-label">Advertencia</span><p>* Medido con el proveedor <strong>${escapeHtml(kpis.llmProvider)}</strong> sobre ${aggregate.requests} consultas, no con Gemini real: el costo es cero por construcción y la latencia no incluye la del modelo.</p></aside>
 </section>`;
 }

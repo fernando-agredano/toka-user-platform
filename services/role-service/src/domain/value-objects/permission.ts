@@ -1,6 +1,6 @@
 import { InvalidPermissionError } from '../errors/domain-error';
 
-/** Closed catalog (CONTEXTO §5): a typo in a role definition must fail loudly instead of silently granting nothing. */
+/** Closed catalog (initial spec): a typo in a role definition must fail loudly instead of silently granting nothing. */
 export const PERMISSION_CATALOG = [
   'users:read',
   'users:write',

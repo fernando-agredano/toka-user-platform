@@ -15,7 +15,7 @@ Se añadieron `config/` (helpers de env), `bootstrap.ts` (`configureApp`: helmet
 El dominio no puede importar Nest ni `@toka/common`, así que `ProblemDetailsFilter` identifica un error de dominio por `code` (string) + `kind` (`validation | unauthorized | forbidden | not_found | conflict | too_many_requests | unavailable`) y lo mapea a HTTP.
 
 ### 5. Desvío del contrato: reactivación de credenciales (`auth.user-activated`)
-CONTEXTO solo pide consumir `user.deactivated` (revocar refresh tokens). Sin más, un usuario desactivado podría volver a iniciar sesión. Se añadió `Credential.active`: `user.deactivated` revoca tokens y desactiva la credencial (login → 403); `user.activated` la reactiva, con una cola nueva `auth.user-activated`. **Fase 4**: incluirla en `rabbitmq/definitions.json`.
+El contrato inicial solo pide consumir `user.deactivated` (revocar refresh tokens). Sin más, un usuario desactivado podría volver a iniciar sesión. Se añadió `Credential.active`: `user.deactivated` revoca tokens y desactiva la credencial (login → 403); `user.activated` la reactiva, con una cola nueva `auth.user-activated`. **Fase 4**: incluirla en `rabbitmq/definitions.json`.
 
 ### 6. Colas: argumentos que deben coincidir
 `BaseConsumer` declara su cola con `durable: true` y `x-dead-letter-exchange: toka.dlx`. Las definiciones de RabbitMQ (Fase 4) deben declarar las colas con exactamente esos argumentos, o el `assertQueue` fallará por `PRECONDITION_FAILED`. Reintentos: 3 intentos con espera creciente (reencolado con header `x-attempts`) y luego `nack` → DLX → `toka.dlq`.
@@ -32,7 +32,7 @@ CONTEXTO solo pide consumir `user.deactivated` (revocar refresh tokens). Sin má
 
 ### 9. Límites conocidos
 - Tras `user.deactivated`, los access tokens ya emitidos siguen válidos hasta 15 min (no hay índice jti→usuario para revocarlos).
-- La invalidación de la caché de permisos de auth ante `role.*` (CONTEXTO §6) queda para la Fase 3, cuando existan esos eventos.
+- La invalidación de la caché de permisos de auth ante `role.*` (contrato inicial §6) queda para la Fase 3, cuando existan esos eventos.
 - Casos de uso y DTOs usan decoradores de Nest (`@Injectable`, class-validator) en `application/`; la regla "sin Nest" se aplica estrictamente solo a `domain/`.
 - El workspace `frontend` se añadirá a `workspaces` en la Fase 6. Node local es 20; Docker usa 22 (`engines: >=20`).
 
@@ -48,7 +48,7 @@ CONTEXTO solo pide consumir `user.deactivated` (revocar refresh tokens). Sin má
 `Role.assertRevocable(holders)` es la regla de dominio. El caso de uso la comprueba (fallo rápido y testeable) y `PrismaRoleRepository.revoke` la repite dentro de una transacción con `SELECT … FOR UPDATE` sobre la fila del rol, de modo que dos revocaciones concurrentes no pueden dejar el sistema sin admin. Verificado contra Postgres real.
 
 ### 13. Catálogo cerrado de permisos y ADMIN inmutable
-Los permisos válidos son los de CONTEXTO §5 (`users:read|write`, `roles:read|write`, `audit:read`, `ai:use`); un typo en un rol falla con 400 en vez de conceder nada en silencio. Los permisos de `ADMIN` no se pueden modificar (403), para que nadie se auto-bloquee. Añadir permisos nuevos requiere tocar `PERMISSION_CATALOG`. Los nombres de rol se normalizan a mayúsculas (`^[A-Z][A-Z0-9_]{1,49}$`) y son inmutables.
+Los permisos válidos son los del contrato inicial (§5) (`users:read|write`, `roles:read|write`, `audit:read`, `ai:use`); un typo en un rol falla con 400 en vez de conceder nada en silencio. Los permisos de `ADMIN` no se pueden modificar (403), para que nadie se auto-bloquee. Añadir permisos nuevos requiere tocar `PERMISSION_CATALOG`. Los nombres de rol se normalizan a mayúsculas (`^[A-Z][A-Z0-9_]{1,49}$`) y son inmutables.
 
 ### 14. Permisos: relación en tabla propia y caché sin vacíos
 `role_permissions(role_id, permission)` en lugar de un array, para poder consultar y mantener integridad referencial. `GET /internal/users/:id/permissions` devuelve listas vacías (no 404) sin asignaciones; ese resultado **no se cachea** (`perms:{userId}`, TTL 600 s), porque el rol `USER` se asigna de forma asíncrona tras el registro y un vacío cacheado retrasaría los permisos hasta 10 min. La caché se invalida al asignar/revocar (usuario) y al cambiar permisos de un rol (todos sus titulares).
@@ -57,7 +57,7 @@ Los permisos válidos son los de CONTEXTO §5 (`users:read|write`, `roles:read|w
 Role-service siembra `ADMIN/MANAGER/USER` y la asignación del admin fijo en `OnModuleInit` (antes de que los consumidores se suscriban en `OnApplicationBootstrap`), para que el primer `auth.user.registered` encuentre el rol `USER`. Nunca pisa roles existentes y tolera réplicas concurrentes (probado con dos seeds en paralelo). User-service siembra el perfil admin (`SEED_ADMIN_EMAIL`, añadido al compose). Ninguna semilla emite eventos, igual que en auth.
 
 ### 16. Desvío del contrato: consumer de auth para `role.*`
-CONTEXTO §6 pide que auth invalide su caché de permisos ante `role.*`. Se añadió la cola `auth.role-changed` (routing keys `role.assigned`, `role.revoked`, `role.permissions.updated`; `role.created` no afecta a nadie). Con `userId` borra solo ese usuario; sin él (`permissions.updated`) hace `SCAN` + `DEL` de `auth:permissions:*`. Trade-off: tras un cambio de roles no se puede puentear una caída de role-service con permisos antiguos (login → 503), que es lo seguro. **Fase 4**: añadir `auth.role-changed` a `rabbitmq/definitions.json`.
+El contrato inicial (§6) pide que auth invalide su caché de permisos ante `role.*`. Se añadió la cola `auth.role-changed` (routing keys `role.assigned`, `role.revoked`, `role.permissions.updated`; `role.created` no afecta a nadie). Con `userId` borra solo ese usuario; sin él (`permissions.updated`) hace `SCAN` + `DEL` de `auth:permissions:*`. Trade-off: tras un cambio de roles no se puede puentear una caída de role-service con permisos antiguos (login → 503), que es lo seguro. **Fase 4**: añadir `auth.role-changed` a `rabbitmq/definitions.json`.
 
 ### 17. Utilidad compartida y duplicación consciente
 `assertSelfOrPermission` (endpoints «propio o permiso») vive en `@toka/common` porque la usan user y role. `DomainError`, `outbox-record`, `PrismaService` y `PersistenceModule` se replican por servicio (como en auth): el dominio no puede importar `@toka/common` y cada servicio genera su propio cliente Prisma.
@@ -89,7 +89,7 @@ Los upstreams de API se resuelven al arrancar (el `depends_on` del compose los g
 ## Fase 6
 
 ### 24. Frontend como paquete independiente (desvío del contrato)
-`CONTEXTO.md` lista `frontend` en los workspaces. Se deja **fuera**: los Dockerfiles de los servicios hacen `npm ci` con el `package-lock.json` raíz y solo copian `packages/` y `services/`, así que un workspace extra rompería sus builds (el lockfile referenciaría una carpeta ausente). El frontend tiene su propio `package.json` y lockfile (Patrón B), y su Dockerfile instala solo lo suyo. Consecuencia: `npm run build/test` de la raíz no lo incluye; se ejecuta con `cd frontend && npm run build`.
+El diseño inicial listaba `frontend` en los workspaces. Se deja **fuera**: los Dockerfiles de los servicios hacen `npm ci` con el `package-lock.json` raíz y solo copian `packages/` y `services/`, así que un workspace extra rompería sus builds (el lockfile referenciaría una carpeta ausente). El frontend tiene su propio `package.json` y lockfile (Patrón B), y su Dockerfile instala solo lo suyo. Consecuencia: `npm run build/test` de la raíz no lo incluye; se ejecuta con `cd frontend && npm run build`.
 
 ### 25. Sesión: token en memoria, refresh single-flight y 401 → reintento
 El `accessToken` vive solo en el slice `auth` (nunca en `localStorage`). Al cargar la app se llama a `/auth/refresh` (cookie httpOnly) **fuera de React**, de modo que StrictMode no dispara dos refresh. El refresh rota en cada uso y el backend trata la reutilización como robo, así que `refreshSession()` comparte una única promesa entre todos los llamadores: dos 401 simultáneos producen un solo refresh y ambas peticiones se reintentan (verificado en navegador). Si el refresh falla se limpia la sesión, se resetea la caché de RTK Query (para no filtrar datos al siguiente usuario) y el guard redirige a `/login`. `login`, `register` y `refresh` no disparan reintento: su 401 son credenciales inválidas.
@@ -101,10 +101,10 @@ Un `listenerMiddleware` convierte todo `rejectedWithValue` en un toast con el `d
 `NAV_ITEMS` (`routes/navigation.tsx`) es la única fuente para sidebar, tarjetas de inicio y rutas protegidas: cada ruta lleva su permiso y `RequirePermission` muestra «Acceso restringido» (no redirige). Es solo UX: la autorización real sigue en el backend. Los botones de escritura (crear, editar, activar, asignar, quitar) se ocultan sin `*:write`.
 
 ### 28. Gateway: `/api/` desconocido responde 404; frontend en 8080
-Sin esto, `/api/ai/chat` caía en `location /` y devolvía el `index.html` del SPA. Se añade `location /api/ { return 404; }` (los prefijos más largos de cada servicio siguen ganando). El frontend usa `nginxinc/nginx-unprivileged` (usuario no-root, CONTEXTO §9), que escucha en 8080, por lo que el upstream del gateway pasa de `frontend:80` a `frontend:8080`. El nginx del frontend añade CSP (`default-src 'self'`), `X-Frame-Options: DENY` y `nosniff`; los assets con hash se cachean un año y `index.html` es `no-cache`.
+Sin esto, `/api/ai/chat` caía en `location /` y devolvía el `index.html` del SPA. Se añade `location /api/ { return 404; }` (los prefijos más largos de cada servicio siguen ganando). El frontend usa `nginxinc/nginx-unprivileged` (usuario no-root, contrato inicial §9), que escucha en 8080, por lo que el upstream del gateway pasa de `frontend:80` a `frontend:8080`. El nginx del frontend añade CSP (`default-src 'self'`), `X-Frame-Options: DENY` y `nosniff`; los assets con hash se cachean un año y `index.html` es `no-cache`.
 
 ### 29. Asistente IA preparado para la Fase 9
-La página y el cliente RTK (`POST /api/ai/chat`) siguen el contrato de CONTEXTO §5. Si el servicio no existe (404/405/502/503/504 o respuesta no JSON) se muestra un aviso en la página y un toast claro. **Supuestos a revisar en la Fase 9:** la forma de `sources[]` (`title|source`, `score`, `snippet`), de `quality.checks`, y un `conversationId` opcional en la respuesta (el contrato solo lo define en la petición).
+La página y el cliente RTK (`POST /api/ai/chat`) siguen el contrato inicial (§5). Si el servicio no existe (404/405/502/503/504 o respuesta no JSON) se muestra un aviso en la página y un toast claro. **Supuestos a revisar en la Fase 9:** la forma de `sources[]` (`title|source`, `score`, `snippet`), de `quality.checks`, y un `conversationId` opcional en la respuesta (el contrato solo lo define en la petición).
 
 ### 30. Estructura de carpetas y límites conocidos
 Se sigue el árbol del Patrón B, pero solo con las carpetas que se usan (`assets/` y `themes/` no existen: los tokens viven en `index.css`/`tailwind.config.ts`). El store y los endpoints RTK viven en `api/` (el patrón no tiene `store/`). Textos de la UI en español; código en inglés. Sin librería de iconos ni de componentes, para no añadir dependencias. Roles: la página lista el catálogo y gestiona asignaciones, pero no crea roles ni edita permisos (fuera del alcance pedido, aunque la API lo permite). Para elegir usuario en Roles hace falta `users:read` (no existe un endpoint «usuarios por rol»).
@@ -128,7 +128,7 @@ RTK Query construye `new Request('/api/…')`, y el `Request` de Node rechaza UR
 El store de la app es un singleton de módulo (con sus listeners de toasts y de limpieza de caché). `renderWithProviders` lo reinicia antes de cada test (`resetApiState`, toasts y sesión) en lugar de refactorizar `store.ts` a una factoría, que sería un cambio de producción fuera del alcance de la fase.
 
 ### 36. Sin umbral de cobertura en el frontend
-Se reporta cobertura pero no se fuerza un umbral global: el objetivo de CLAUDE.md es señal sobre flujos críticos, no cobertura total. Login, registro y slice de auth quedan al 100 % de statements; la lista de usuarios al 67 % (faltan los modales de alta/edición y la confirmación de activar/desactivar); `RequirePermission` está cubierto. Quedan sin cubrir el refresh single-flight de `base-query.ts` y los guards `RequireAuth`/`GuestOnly`: se anotan como deuda, no se incluyen en esta fase.
+Se reporta cobertura pero no se fuerza un umbral global: el objetivo es señal sobre flujos críticos, no cobertura total. Login, registro y slice de auth quedan al 100 % de statements; la lista de usuarios al 67 % (faltan los modales de alta/edición y la confirmación de activar/desactivar); `RequirePermission` está cubierto. Quedan sin cubrir el refresh single-flight de `base-query.ts` y los guards `RequireAuth`/`GuestOnly`: se anotan como deuda, no se incluyen en esta fase.
 
 ## Fase 8
 
@@ -153,13 +153,13 @@ Ante 429 persistente, breaker abierto o falta de slot global, se usa `LLM_FALLBA
 ## Fase 9
 
 ### 43. Modelo de embeddings multilingüe en q8 (desvío del contrato)
-CONTEXTO fija `Xenova/all-MiniLM-L6-v2`. Se midió contra `Xenova/paraphrase-multilingual-MiniLM-L12-v2` con `npm run eval:retrieval` (30 preguntas en el dominio, 6 fuera; informes en `services/ai-agent-service/eval/`): hit@4 86,7 % → 96,7 %, MRR 0,78 → 0,90 y coseno medio del ruido fuera de dominio 0,43 → 0,17. Con el modelo en inglés, el mejor umbral posible (0,55) ya sacrificaba recall y aun así 0,30 dejaba pasar el 83 % del ruido. Mismas 384 dimensiones, así que la colección de Qdrant no cambia. Se usa `dtype: q8` (118 MB en vez de 470 MB; cuesta un caso de 30). Trade-off: modelo de 12 capas, más lento que el de 6. `EMBEDDING_MODEL` y `EMBEDDING_DTYPE` permiten volver atrás sin tocar código; si cambia la dimensión, el store recrea la colección.
+El contrato inicial fija `Xenova/all-MiniLM-L6-v2`. Se midió contra `Xenova/paraphrase-multilingual-MiniLM-L12-v2` con `npm run eval:retrieval` (30 preguntas en el dominio, 6 fuera; informes en `services/ai-agent-service/eval/`): hit@4 86,7 % → 96,7 %, MRR 0,78 → 0,90 y coseno medio del ruido fuera de dominio 0,43 → 0,17. Con el modelo en inglés, el mejor umbral posible (0,55) ya sacrificaba recall y aun así 0,30 dejaba pasar el 83 % del ruido. Mismas 384 dimensiones, así que la colección de Qdrant no cambia. Se usa `dtype: q8` (118 MB en vez de 470 MB; cuesta un caso de 30). Trade-off: modelo de 12 capas, más lento que el de 6. `EMBEDDING_MODEL` y `EMBEDDING_DTYPE` permiten volver atrás sin tocar código; si cambia la dimensión, el store recrea la colección.
 
 ### 44. Umbral de recuperación 0,35 y piso del modo degradado 0,45
 El umbral 0,30 de la Fase 8 se calibró con datos: con el modelo multilingüe hay una meseta de 0 % de falsos positivos entre 0,25 y 0,40; 0,35 deja margen a ambos lados (peor ruido 0,24; el recall cae a partir de 0,45). El modo degradado solo muestra fragmentos con score ≥ 0,45: por debajo es más honesto un 503 que enseñar texto poco relacionado.
 
 ### 45. Imagen Docker sobre Debian slim, modelo horneado (desvío del contrato)
-CONTEXTO pide `node:22-alpine`, pero `onnxruntime-node` trae binarios nativos solo para glibc. El modelo q8 se descarga en el build, así que el primer arranque no necesita internet (arranca en ~3 s). Sin `wget` en slim, el `HEALTHCHECK` usa `node`. Coste: la imagen pesa 1,05 GB (661 MB de `node_modules`, de los que `onnxruntime-node` son 291 MB con los binarios de todas las plataformas).
+El contrato inicial pide `node:22-alpine`, pero `onnxruntime-node` trae binarios nativos solo para glibc. El modelo q8 se descarga en el build, así que el primer arranque no necesita internet (arranca en ~3 s). Sin `wget` en slim, el `HEALTHCHECK` usa `node`. Coste: la imagen pesa 1,05 GB (661 MB de `node_modules`, de los que `onnxruntime-node` son 291 MB con los binarios de todas las plataformas).
 
 ### 46. Cliente de Qdrant 1.12.0 y `node_modules` anidado
 `@qdrant/js-client-rest` se fija en 1.12.0 para coincidir con el servidor `v1.12.4` del compose (la 1.19 ya no tiene `search`). Por un conflicto de `undici`, npm anida el cliente en `services/ai-agent-service/node_modules`; el runtime copia también ese directorio.
@@ -190,7 +190,7 @@ Dos workflows: `backend.yml` (build de todos los workspaces y tests con el umbra
 ## Fase 11.8 (módulo extra: MCP server)
 
 ### 54. mcp-server sin NestJS ni inyección por tokens (desvío del contrato)
-CONTEXTO pide Clean Architecture con inyección vía tokens de Nest. Aquí la capa `presentation` la dicta el SDK de MCP (el transporte HTTP y stdio son suyos) y el modo stdio se ejecuta con `npx` en la máquina del usuario, donde levantar un contenedor de Nest no aporta nada. Se mantiene la regla de dependencias (`domain` sin imports de framework; `application` solo conoce puertos y `zod`) y la inyección es por constructor, ensamblada en `composition-root.ts`. `@toka/common` se reutiliza igual: `createLogger`, `CorrelationIdMiddleware`, `JwtVerifier`, `ResilientHttpClient`, `EventPublisher` y `createEnvelope` se instancian a mano.
+El contrato inicial pide Clean Architecture con inyección vía tokens de Nest. Aquí la capa `presentation` la dicta el SDK de MCP (el transporte HTTP y stdio son suyos) y el modo stdio se ejecuta con `npx` en la máquina del usuario, donde levantar un contenedor de Nest no aporta nada. Se mantiene la regla de dependencias (`domain` sin imports de framework; `application` solo conoce puertos y `zod`) y la inyección es por constructor, ensamblada en `composition-root.ts`. `@toka/common` se reutiliza igual: `createLogger`, `CorrelationIdMiddleware`, `JwtVerifier`, `ResilientHttpClient`, `EventPublisher` y `createEnvelope` se instancian a mano.
 
 ### 55. Servidor MCP sin estado y una instancia por petición
 Con `sessionIdGenerator: undefined` cada `POST /mcp` crea su `McpServer` ligado al `Caller` verificado de esa petición. Así un token jamás se reutiliza para otro usuario, se escala horizontalmente sin sticky sessions y el gateway no necesita afinidad. Coste: no hay notificaciones iniciadas por el servidor (GET/DELETE `/mcp` responden 405), que esta plataforma no necesita.

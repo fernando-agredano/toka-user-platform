@@ -10,7 +10,7 @@ Requisitos técnicos
 - [x] Comunicación síncrona (REST) y asíncrona (RabbitMQ) — `docs/01-arquitectura.md` §4; `packages/common/src/http/resilient-http-client.ts`; `packages/common/src/messaging/`
 - [x] Estrategia multi-DB: SQL (transaccional), MongoDB (auditoría), Redis (caching) — `docs/01-arquitectura.md` §3; `infra/postgres/init.sql`; `services/audit-service/src/infrastructure/persistence/`
 - [x] Microservicio/módulo de IA con RAG en la arquitectura — `services/ai-agent-service/`; diagrama en `docs/01-arquitectura.md` §2
-- [x] Ejecutable localmente con Docker Compose — `docker-compose.yml` (13 servicios); verificado en Fases 4, 9 y 11.2 (`PROGRESO.md`)
+- [x] Ejecutable localmente con Docker Compose — `docker-compose.yml` (13 servicios); verificado en las fases 4, 9 y 11.2 (`docs/decisiones.md`)
 
 Entregables
 - [x] Diagrama de arquitectura (Mermaid/visual) con todos los microservicios e interacciones — `docs/01-arquitectura.md` §2; embebido en `README.md`
@@ -51,7 +51,7 @@ Entregables
 - [x] Explicación de cómo se aplicaron DDD y Clean Architecture — `docs/02-ddd-clean-architecture.md`
 
 Evaluación
-- [x] Cumplimiento funcional — flujos E2E por gateway verificados (`PROGRESO.md` Fase 4 y 6)
+- [x] Cumplimiento funcional — flujos E2E por gateway verificados (fases 4 y 6)
 - [x] Uso correcto de ORM y acceso a datos — repositorios como adaptadores de puertos de dominio; `$transaction` con outbox (`docs/02-ddd-clean-architecture.md` §3)
 - [x] Código limpio, seguro, SOLID — casos de uso de una sola responsabilidad, inyección por tokens (`docs/02-ddd-clean-architecture.md` §2, §5)
 - [x] DDD y Clean Architecture correctos — reglas de dependencia comprobadas con grep (`docs/02-ddd-clean-architecture.md` §2)
@@ -85,12 +85,12 @@ Entregables
 - [x] docker-compose.yml actualizado — `docker-compose.yml` (`frontend`)
 
 Evaluación
-- [x] Funcionalidad de la UI — recorrido real en navegador (`PROGRESO.md` Fase 6); capturas en `docs/img/frontend/`
+- [x] Funcionalidad de la UI — recorrido real en navegador (fase 6); capturas en `docs/img/frontend/`
 - [x] Uso correcto de state management — tags de invalidación y refresh single-flight (`frontend/src/api/base-query.ts`)
 - [x] Integración correcta — vía gateway, mismo origen, cookie httpOnly
 - [x] Estados de carga, error y éxito — `docs/03-frontend.md` §5
 - [x] Calidad de TypeScript — `strict`, `tsc --noEmit` en build y `typecheck:test`
-- [x] Tests funcionando — 29/29; coverage 77 % statements (`docs/coverage/frontend/`). Parcial: el refresh single-flight de `base-query.ts` no tiene test (deuda declarada en `PROGRESO.md` Fase 7)
+- [x] Tests funcionando — 29/29; coverage 77 % statements (`docs/coverage/frontend/`). Parcial: el refresh single-flight de `base-query.ts` no tiene test (deuda declarada en la fase 7)
 - [x] UX básica (feedback, validaciones) — `docs/03-frontend.md` §5
 - [x] Front dockerizado — `frontend/Dockerfile` (nginx-unprivileged, no-root)
 

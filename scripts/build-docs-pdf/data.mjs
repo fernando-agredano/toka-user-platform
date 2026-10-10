@@ -1,8 +1,8 @@
 import { readdirSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, relative } from 'node:path';
 import { ROOT, readSource } from './sources.mjs';
 
-// Event types published on the `toka.events` exchange (CONTEXTO.md §6).
+// Event types published on the `toka.events` exchange (see docs/01-arquitectura.md).
 const EVENT_TYPES = [
   'auth.user.registered',
   'auth.login.succeeded',
@@ -80,8 +80,18 @@ function parseExamples() {
   };
 }
 
+const HTTP_ROUTE_DECORATOR = /^\s*@(Get|Post|Put|Patch|Delete)\(/gm;
+const listControllerFiles = (directory) =>
+  readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
+    const path = join(directory, entry.name);
+    if (entry.isDirectory()) return listControllerFiles(path);
+    return entry.name.endsWith('.controller.ts') ? [path] : [];
+  });
+// Counts the routes of the five exam services; health checks come from @toka/common and are not counted.
 const countEndpoints = () =>
-  (readSource('CONTEXTO.md').match(/^\| (GET|POST|PUT|PATCH|DELETE) \|/gm) ?? []).length;
+  ['auth', 'user', 'role', 'audit', 'ai-agent']
+    .flatMap((service) => listControllerFiles(join(ROOT, 'services', `${service}-service`, 'src')))
+    .reduce((total, file) => total + (readSource(relative(ROOT, file)).match(HTTP_ROUTE_DECORATOR) ?? []).length, 0);
 
 // Extra modules (not part of the exam's five microservices) are listed in docs/ but not counted here.
 const EXTRA_SERVICES = new Set(['mcp-server']);

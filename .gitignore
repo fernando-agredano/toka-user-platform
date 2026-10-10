@@ -9,3 +9,11 @@ keys/
 *.log
 .DS_Store
 .cache/
+
+# Claude Code working guides and personal notes (local only)
+CLAUDE.md
+CONTEXTO.md
+PROGRESO.md
+FASES.md
+.claude/
+docs/preguntas-entrevista-mcp.md

@@ -17,7 +17,7 @@ export interface CreateUserInput {
   actorId: string | null;
 }
 
-/** Admin-created user: profile here, credentials in auth-service (REST, per CONTEXTO §5). */
+/** Admin-created user: profile here, credentials in auth-service (REST, per the initial spec). */
 @Injectable()
 export class CreateUserUseCase {
   constructor(

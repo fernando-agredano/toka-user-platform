@@ -74,7 +74,7 @@ export interface AuditFilters {
   to?: string;
 }
 
-// AI contract (CONTEXTO.md §5), extended in phase 9 (docs/decisiones.md): sources carry the label the answer cites.
+// AI contract, extended in phase 9 (docs/decisiones.md): sources carry the label the answer cites.
 export interface ChatRequest {
   message: string;
   conversationId?: string;

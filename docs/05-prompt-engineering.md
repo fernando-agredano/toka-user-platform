@@ -1,7 +1,7 @@
 # Ejercicio 5 – Diseño del agente IA: prompt engineering, RAG y evaluación
 
 > Fase 8 (solo diseño). La implementación es la Fase 9 (`services/ai-agent-service`).
-> Contratos de referencia: `CONTEXTO.md` §1, §5 y §8. Desvíos y decisiones: `docs/decisiones.md` §37-42.
+> Desvíos y decisiones: `docs/decisiones.md` §37-42.
 
 ## 0. Resumen
 
@@ -639,7 +639,7 @@ Lo que la implementación y la medición real obligaron a cambiar. El resto del 
 
 | Tema | Diseño (Fase 8) | Implementado | Por qué |
 |---|---|---|---|
-| Modelo de embeddings | `Xenova/all-MiniLM-L6-v2` (fijado en CONTEXTO) | `Xenova/paraphrase-multilingual-MiniLM-L12-v2`, `dtype: q8`, mismas 384 dimensiones | Medido con 30 preguntas en el dominio y 6 fuera ([informes](../services/ai-agent-service/eval/)): hit@4 86,7 % → 96,7 %, MRR 0,78 → 0,90, y el ruido fuera de dominio baja de 0,43 a 0,17 de coseno medio. q8 pesa ~118 MB frente a 470 MB de fp32 y cuesta un caso de 30. |
+| Modelo de embeddings | `Xenova/all-MiniLM-L6-v2` (fijado en el contrato inicial) | `Xenova/paraphrase-multilingual-MiniLM-L12-v2`, `dtype: q8`, mismas 384 dimensiones | Medido con 30 preguntas en el dominio y 6 fuera ([informes](../services/ai-agent-service/eval/)): hit@4 86,7 % → 96,7 %, MRR 0,78 → 0,90, y el ruido fuera de dominio baja de 0,43 a 0,17 de coseno medio. q8 pesa ~118 MB frente a 470 MB de fp32 y cuesta un caso de 30. |
 | Umbral de recuperación | 0,30 | 0,35 | Ver §6.4. |
 | Piso del modo degradado | 0,50 | 0,45 | Calibrado para el nuevo modelo (el chunk correcto promedia ~0,60). |
 | Estructura de los documentos | — | La sección «Auditoría» de la guía de uso se dividió en tres subsecciones | Dos preguntas fallaban porque un mismo chunk mezclaba filtros, tabla de eventos y retención. El chunker corta por encabezados, así que la solución es de contenido, no de algoritmo. |

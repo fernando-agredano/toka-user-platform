@@ -15,7 +15,7 @@ Este documento explica cómo se aplicaron Domain-Driven Design y Clean Architect
 
 ## 2. Capas y regla de dependencias
 
-Todos los servicios siguen la misma estructura (definida en [CONTEXTO.md §2](../CONTEXTO.md)):
+Todos los servicios siguen la misma estructura (Clean Architecture por servicio):
 
 ```
 src/
@@ -111,7 +111,7 @@ El dominio nunca sabe de RabbitMQ: solo produce eventos.
 ## 8. Tests que siguen las capas
 
 - **Domain y application** (cubiertos por el umbral de 70 %): tests unitarios con repositorios y gateways en memoria. Rápidos y sin infraestructura.
-- **Infrastructure**: no tiene tests unitarios automatizados. Los repositorios de Prisma se probaron contra Postgres 16 real durante el desarrollo (ver la bitácora en `PROGRESO.md`), y el adaptador de auditoría se valida con el stack completo (`docker compose up -d --build`). No se sube la cobertura con mocks de Prisma o Mongoose; el alcance medido está en [coverage.md](coverage.md).
+- **Infrastructure**: no tiene tests unitarios automatizados. Los repositorios de Prisma se probaron contra Postgres 16 real durante el desarrollo, y el adaptador de auditoría se valida con el stack completo (`docker compose up -d --build`). No se sube la cobertura con mocks de Prisma o Mongoose; el alcance medido está en [coverage.md](coverage.md).
 
 ## 9. Trade-offs asumidos
 

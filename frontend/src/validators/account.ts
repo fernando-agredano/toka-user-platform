@@ -3,7 +3,7 @@ import { z } from 'zod';
 const requiredName = (label: string) =>
   z.string().trim().min(1, `${label} es obligatorio`).max(100, `${label} no puede superar 100 caracteres`);
 
-// Mirrors the backend password policy (CONTEXTO.md §9).
+// Mirrors the backend password policy.
 const passwordSchema = z
   .string()
   .min(8, 'Mínimo 8 caracteres')
