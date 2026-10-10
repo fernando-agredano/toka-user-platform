@@ -182,6 +182,8 @@ Para otra cuenta o URL: variables `TOKA_EMAIL`, `TOKA_PASSWORD` y `TOKA_API_URL`
 
 ## Documentación
 
+Los documentos de `docs/` son la fuente de verdad en Markdown y se leen directamente en GitHub. [docs/Documentacion-Tecnica.pdf](docs/Documentacion-Tecnica.pdf) es la misma documentación unida en un solo archivo paginado (portada, índice, resumen ejecutivo, 8 secciones y anexo para ejecutar el sistema), pensado para leer o entregar sin navegar entre archivos. Se genera con `npm run docs:pdf`; no se edita a mano.
+
 | Entregable de la prueba | Archivo |
 |---|---|
 | **Ejercicio 1 – Arquitectura** | |
@@ -212,6 +214,7 @@ Para otra cuenta o URL: variables `TOKA_EMAIL`, `TOKA_PASSWORD` y `TOKA_API_URL`
 | Ejemplos de uso integrados | [docs/05-ejemplos.md](docs/05-ejemplos.md) |
 | Explicación de la integración | [docs/05-integracion.md](docs/05-integracion.md) |
 | **Transversal** | |
+| Documentación técnica completa en un solo PDF | [docs/Documentacion-Tecnica.pdf](docs/Documentacion-Tecnica.pdf) (regenerar: `npm run docs:pdf`) |
 | Checklist de requisitos de la prueba | [docs/REQUISITOS.md](docs/REQUISITOS.md) |
 | Decisiones (ADRs cortos) por fase | [docs/decisiones.md](docs/decisiones.md) |
 | Cobertura del backend y su alcance | [docs/coverage.md](docs/coverage.md) |
@@ -230,12 +233,34 @@ Se conecta con `claude mcp add --transport http toka http://localhost:8080/mcp -
 
 ```
 ├─ docker-compose.yml     stack completo (servicios, datos, gateway, frontend)
+├─ .env.example           variables de entorno (copiar a .env)
+├─ .github/workflows/     CI: backend.yml y frontend.yml (lint, build y tests)
 ├─ infra/                 gateway nginx, init.sql de Postgres, definiciones de RabbitMQ
 ├─ packages/common/       @toka/common: logger, JWT, outbox, consumers, filtros de error
-├─ services/              los 5 microservicios + mcp-server, módulo extra (Clean Architecture por servicio)
-├─ frontend/              SPA React + Redux Toolkit
-├─ scripts/               resumen de coverage de test:all
-└─ docs/                  documentación técnica
+├─ services/              los 5 microservicios + mcp-server, módulo extra
+│  └─ ai-agent-service/   además: knowledge/ (base de conocimiento) y eval/ (evaluación de recuperación y del agente)
+├─ frontend/              SPA React + Redux Toolkit (fuera de los workspaces de npm)
+├─ scripts/
+│  ├─ review/             comandos de revisión: auditoría, conexión del MCP (npm run review:*)
+│  ├─ build-docs-pdf/     generador del PDF (npm run docs:pdf)
+│  ├─ coverage-summary.mjs  tabla final de npm run test:all
+│  └─ style-coverage.mjs  tema de los reportes HTML de coverage
+└─ docs/                  documentación (Markdown + PDF), reportes de coverage e imágenes
+```
+
+Cada servicio sigue la misma estructura de Clean Architecture (detalle en [docs/02-ddd-clean-architecture.md](docs/02-ddd-clean-architecture.md)); `mcp-server` no usa Nest y en su lugar tiene un `composition-root.ts`:
+
+```
+services/<servicio>/
+├─ src/
+│  ├─ domain/           entidades, value objects, eventos, puertos (sin dependencias de frameworks)
+│  ├─ application/      casos de uso, DTOs y puertos externos
+│  ├─ infrastructure/   persistencia, mensajería, caché y clientes HTTP
+│  └─ presentation/     controladores, guards y filtros
+├─ test/unit/           tests de dominio y aplicación con repositorios en memoria
+├─ prisma/              esquema y migraciones (servicios con Postgres)
+├─ Dockerfile           multi-stage, usuario no-root
+└─ README.md            resumen del servicio
 ```
 
 ## Limitaciones conocidas
