@@ -1,5 +1,6 @@
-import { AssistantPage } from '@/pages/AssistantPage';
+import type { IconName } from '@/components/ui/Icon';
 import { AuditPage } from '@/pages/AuditPage';
+import { McpPage } from '@/pages/McpPage';
 import { RolesPage } from '@/pages/RolesPage';
 import { UsersPage } from '@/pages/UsersPage';
 import type { ReactNode } from 'react';
@@ -9,6 +10,7 @@ export interface NavItem {
   label: string;
   description: string;
   permission: string;
+  icon: IconName;
   page: ReactNode;
 }
 
@@ -19,6 +21,7 @@ export const NAV_ITEMS: NavItem[] = [
     label: 'Usuarios',
     description: 'Consulta, crea y administra cuentas.',
     permission: 'users:read',
+    icon: 'users',
     page: <UsersPage />,
   },
   {
@@ -26,6 +29,7 @@ export const NAV_ITEMS: NavItem[] = [
     label: 'Roles',
     description: 'Revisa roles y asígnalos a usuarios.',
     permission: 'roles:read',
+    icon: 'roles',
     page: <RolesPage />,
   },
   {
@@ -33,13 +37,15 @@ export const NAV_ITEMS: NavItem[] = [
     label: 'Auditoría',
     description: 'Eventos del sistema y estadísticas.',
     permission: 'audit:read',
+    icon: 'audit',
     page: <AuditPage />,
   },
   {
-    to: '/assistant',
-    label: 'Asistente IA',
-    description: 'Pregunta sobre usuarios, roles y políticas.',
-    permission: 'ai:use',
-    page: <AssistantPage />,
+    to: '/mcp',
+    label: 'Servidor MCP',
+    description: 'Actividad de los asistentes y cómo conectarlos.',
+    permission: 'audit:read',
+    icon: 'plug',
+    page: <McpPage />,
   },
 ];

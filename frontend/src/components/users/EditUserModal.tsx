@@ -28,20 +28,21 @@ export const EditUserModal = ({ user, onClose }: EditUserModalProps) => {
   const onSubmit = async (values: EditUserValues) => {
     const result = await updateUser({ id: user.id, ...values });
     if ('error' in result) return;
-    toast.success('Usuario actualizado.');
+    toast.success('Los cambios se guardaron correctamente.', 'Usuario actualizado');
     onClose();
   };
 
   return (
-    <Modal title={`Editar ${user.email}`} onClose={onClose}>
-      <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
+    <Modal title="Editar usuario" onClose={onClose}>
+      <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-1">
+        <p className="pb-4 text-center text-sm text-ink-soft">{user.email}</p>
         <TextField label="Nombre" error={errors.firstName?.message} {...register('firstName')} />
         <TextField label="Apellido" error={errors.lastName?.message} {...register('lastName')} />
-        <div className="flex justify-end gap-3 pt-2">
-          <Button variant="secondary" onClick={onClose}>
+        <div className="flex justify-end gap-3 pt-4">
+          <Button variant="secondary" size="lg" onClick={onClose}>
             Cancelar
           </Button>
-          <Button type="submit" loading={isLoading}>
+          <Button type="submit" size="lg" loading={isLoading}>
             Guardar cambios
           </Button>
         </div>

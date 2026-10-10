@@ -21,11 +21,20 @@ export async function login() {
   return accessToken;
 }
 
-export async function authorizedGet(path, accessToken) {
-  const response = await fetch(`${BASE_URL}${path}`, { headers: { authorization: `Bearer ${accessToken}` } });
-  if (!response.ok) throw new Error(`GET ${path} respondió HTTP ${response.status}`);
-  return response.json();
+export async function authorizedRequest(method, path, accessToken, body) {
+  const response = await fetch(`${BASE_URL}${path}`, {
+    method,
+    headers: { authorization: `Bearer ${accessToken}`, ...(body && { 'content-type': 'application/json' }) },
+    body: body && JSON.stringify(body),
+  });
+  if (!response.ok) {
+    const problem = await response.json().catch(() => ({}));
+    throw new Error(`${method} ${path} respondió HTTP ${response.status}${problem.detail ? `: ${problem.detail}` : ''}`);
+  }
+  return response.status === 204 ? null : response.json();
 }
+
+export const authorizedGet = (path, accessToken) => authorizedRequest('GET', path, accessToken);
 
 export function run(main) {
   main().catch((error) => {

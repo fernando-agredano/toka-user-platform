@@ -1,54 +1,68 @@
-import type { UserStatus, UserView } from '@/@types/api';
+import type { UserView } from '@/@types/api';
 import { useActivateUserMutation, useDeactivateUserMutation, useListUsersQuery } from '@/api/users.api';
+import { Page } from '@/components/layout/Page';
 import { Avatar } from '@/components/ui/Avatar';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
-import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { type Column, DataTable } from '@/components/ui/DataTable';
-import { SelectField, TextField } from '@/components/ui/Field';
-import { PageHeader } from '@/components/ui/PageHeader';
+import { Icon } from '@/components/ui/Icon';
 import { Pagination } from '@/components/ui/Pagination';
+import { TableCard } from '@/components/ui/TableCard';
 import { CreateUserModal } from '@/components/users/CreateUserModal';
 import { EditUserModal } from '@/components/users/EditUserModal';
+import { PAGE_SIZE_OPTIONS, type StatusFilter, UsersToolbar } from '@/components/users/UsersToolbar';
+import { useConfirm } from '@/hooks/use-confirm';
 import { useDebounce } from '@/hooks/use-debounce';
 import { usePermissions } from '@/hooks/use-permissions';
 import { useToast } from '@/hooks/use-toast';
 import { formatDate, fullName } from '@/utils/format';
 import { useState } from 'react';
 
-const PAGE_SIZE = 10;
-
 export const UsersPage = () => {
   const toast = useToast();
+  const confirm = useConfirm();
   const { can } = usePermissions();
   const canWrite = can('users:write');
 
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(PAGE_SIZE_OPTIONS[0] ?? 10);
   const [searchInput, setSearchInput] = useState('');
   const search = useDebounce(searchInput);
-  const [status, setStatus] = useState<UserStatus | ''>('');
+  const [status, setStatus] = useState<StatusFilter>('');
 
   const [isCreating, setIsCreating] = useState(false);
   const [userToEdit, setUserToEdit] = useState<UserView | null>(null);
-  const [userToToggle, setUserToToggle] = useState<UserView | null>(null);
 
   const { data, isLoading, isFetching, isError, refetch } = useListUsersQuery({
     page,
-    limit: PAGE_SIZE,
+    limit: pageSize,
     search: search || undefined,
     status: status || undefined,
   });
-  const [activateUser, { isLoading: isActivating }] = useActivateUserMutation();
-  const [deactivateUser, { isLoading: isDeactivating }] = useDeactivateUserMutation();
+  const [activateUser] = useActivateUserMutation();
+  const [deactivateUser] = useDeactivateUserMutation();
 
-  const confirmToggle = async () => {
-    if (!userToToggle) return;
-    const willDeactivate = userToToggle.status === 'ACTIVE';
-    const result = await (willDeactivate ? deactivateUser : activateUser)(userToToggle.id);
+  const resetToFirstPage =
+    <T,>(setter: (value: T) => void) =>
+    (value: T) => {
+      setter(value);
+      setPage(1);
+    };
+
+  const toggleStatus = async (user: UserView) => {
+    const willDeactivate = user.status === 'ACTIVE';
+    const confirmed = await confirm({
+      title: willDeactivate ? 'Desactivar usuario' : 'Activar usuario',
+      message: willDeactivate
+        ? `${user.email} no podrá iniciar sesión y se revocarán sus sesiones activas.`
+        : `${user.email} podrá volver a iniciar sesión.`,
+      confirmLabel: willDeactivate ? 'Desactivar' : 'Activar',
+      destructive: willDeactivate,
+    });
+    if (!confirmed) return;
+    const result = await (willDeactivate ? deactivateUser : activateUser)(user.id);
     if ('error' in result) return;
-    toast.success(`Usuario ${willDeactivate ? 'desactivado' : 'activado'}.`);
-    setUserToToggle(null);
+    toast.success(`${fullName(user)} fue ${willDeactivate ? 'desactivado' : 'activado'}.`);
   };
 
   const columns: Column<UserView>[] = [
@@ -79,13 +93,37 @@ export const UsersPage = () => {
             header: 'Acciones',
             className: 'text-right',
             cell: (user: UserView) => (
-              <div className="flex justify-end gap-1">
-                <Button variant="ghost" onClick={() => setUserToEdit(user)}>
+              <div className="flex justify-end gap-2">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  aria-label={`Editar a ${fullName(user)}`}
+                  onClick={() => setUserToEdit(user)}
+                >
+                  <Icon name="pencil" className="h-4 w-4" />
                   Editar
                 </Button>
-                <Button variant="ghost" onClick={() => setUserToToggle(user)}>
-                  {user.status === 'ACTIVE' ? 'Desactivar' : 'Activar'}
-                </Button>
+                {user.status === 'ACTIVE' ? (
+                  <Button
+                    variant="dangerOutline"
+                    size="sm"
+                    aria-label={`Desactivar a ${fullName(user)}`}
+                    onClick={() => toggleStatus(user)}
+                  >
+                    <Icon name="userX" className="h-4 w-4" />
+                    Desactivar
+                  </Button>
+                ) : (
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    aria-label={`Activar a ${fullName(user)}`}
+                    onClick={() => toggleStatus(user)}
+                  >
+                    <Icon name="userCheck" className="h-4 w-4" />
+                    Activar
+                  </Button>
+                )}
               </div>
             ),
           },
@@ -94,73 +132,56 @@ export const UsersPage = () => {
   ];
 
   return (
-    <>
-      <PageHeader
-        title="Usuarios"
-        description="Cuentas registradas en la plataforma."
-        actions={canWrite && <Button onClick={() => setIsCreating(true)}>Nuevo usuario</Button>}
-      />
-      <Card>
-        <div className="mb-4 grid gap-4 sm:grid-cols-[1fr_12rem]">
-          <TextField
-            label="Buscar"
-            placeholder="Nombre o correo"
-            value={searchInput}
-            onChange={(event) => {
-              setSearchInput(event.target.value);
-              setPage(1);
-            }}
-          />
-          <SelectField
-            label="Estado"
-            value={status}
-            onChange={(event) => {
-              setStatus(event.target.value as UserStatus | '');
-              setPage(1);
-            }}
-          >
-            <option value="">Todos</option>
-            <option value="ACTIVE">Activos</option>
-            <option value="INACTIVE">Inactivos</option>
-          </SelectField>
-        </div>
-        <DataTable
-          columns={columns}
-          rows={data?.items}
-          rowKey={(user) => user.id}
-          isLoading={isLoading}
-          isError={isError}
-          onRetry={refetch}
-          emptyMessage="No hay usuarios que coincidan con la búsqueda."
-        />
-        {data && (
-          <Pagination
-            page={page}
-            limit={PAGE_SIZE}
-            total={data.total}
-            onPageChange={setPage}
-            disabled={isFetching}
-          />
+    <Page title="Usuarios" subtitle="Cuentas registradas en la plataforma">
+      <div className="space-y-5">
+        {canWrite && (
+          <div className="flex justify-end">
+            <Button onClick={() => setIsCreating(true)}>
+              <Icon name="plus" className="h-4 w-4" />
+              Nuevo usuario
+            </Button>
+          </div>
         )}
-      </Card>
+        <TableCard
+          toolbar={
+            <UsersToolbar
+              search={searchInput}
+              status={status}
+              pageSize={pageSize}
+              onSearchChange={resetToFirstPage(setSearchInput)}
+              onStatusChange={resetToFirstPage(setStatus)}
+              onPageSizeChange={resetToFirstPage(setPageSize)}
+              onClear={() => {
+                setSearchInput('');
+                setStatus('');
+                setPage(1);
+              }}
+            />
+          }
+        >
+          <DataTable
+            columns={columns}
+            rows={data?.items}
+            rowKey={(user) => user.id}
+            isLoading={isLoading}
+            isError={isError}
+            onRetry={refetch}
+            emptyMessage="No hay usuarios que coincidan con la búsqueda."
+          />
+          {data && (
+            <Pagination
+              page={page}
+              limit={pageSize}
+              total={data.total}
+              onPageChange={setPage}
+              disabled={isFetching}
+            />
+          )}
+        </TableCard>
+      </div>
 
       {isCreating && <CreateUserModal onClose={() => setIsCreating(false)} />}
       {userToEdit && <EditUserModal user={userToEdit} onClose={() => setUserToEdit(null)} />}
-      {userToToggle && (
-        <ConfirmDialog
-          title={userToToggle.status === 'ACTIVE' ? 'Desactivar usuario' : 'Activar usuario'}
-          message={
-            userToToggle.status === 'ACTIVE'
-              ? `${userToToggle.email} no podrá iniciar sesión y se revocarán sus sesiones activas.`
-              : `${userToToggle.email} podrá volver a iniciar sesión.`
-          }
-          confirmLabel={userToToggle.status === 'ACTIVE' ? 'Desactivar' : 'Activar'}
-          destructive={userToToggle.status === 'ACTIVE'}
-          loading={isActivating || isDeactivating}
-          onConfirm={confirmToggle}
-          onCancel={() => setUserToToggle(null)}
-        />
-      )}
-    </>
+    </Page>
   );
 };

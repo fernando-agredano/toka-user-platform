@@ -8,7 +8,7 @@ export default {
       colors: {
         page: 'var(--color-bg-page)',
         card: 'var(--color-bg-card)',
-        line: 'var(--color-border)',
+        line: { DEFAULT: 'var(--color-border)', strong: 'var(--color-border-strong)' },
         ink: {
           DEFAULT: 'var(--color-text-primary)',
           soft: 'var(--color-text-secondary)',
@@ -26,6 +26,19 @@ export default {
       },
       borderRadius: { sm: '8px', md: '12px', lg: '16px' },
       boxShadow: { sm: 'var(--shadow-sm)', md: 'var(--shadow-md)', lg: 'var(--shadow-lg)' },
+      keyframes: {
+        'toast-in': {
+          from: { opacity: '0', transform: 'translateY(-12px) scale(0.97)' },
+          to: { opacity: '1', transform: 'none' },
+        },
+        'pop-in': { from: { opacity: '0', transform: 'translateY(8px) scale(0.96)' }, to: { opacity: '1', transform: 'none' } },
+        'toast-progress': { from: { transform: 'scaleX(1)' }, to: { transform: 'scaleX(0)' } },
+      },
+      animation: {
+        'toast-in': 'toast-in 220ms ease-out',
+        'pop-in': 'pop-in 180ms ease-out',
+        'toast-progress': 'toast-progress 5000ms linear forwards',
+      },
       fontFamily: { sans: ['Geist', 'Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'] },
     },
   },

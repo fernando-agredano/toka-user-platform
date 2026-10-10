@@ -1,32 +1,34 @@
+import { AuditOverview } from '@/components/home/AuditOverview';
+import { FeatureCard } from '@/components/home/FeatureCard';
+import { Page } from '@/components/layout/Page';
 import { Card } from '@/components/ui/Card';
-import { PageHeader } from '@/components/ui/PageHeader';
+import { useHomeMetrics } from '@/hooks/use-home-metrics';
 import { usePermissions } from '@/hooks/use-permissions';
 import { NAV_ITEMS } from '@/routes/navigation';
-import { Link } from 'react-router-dom';
 
 export const HomePage = () => {
-  const { can, user } = usePermissions();
+  const { can } = usePermissions();
+  const metrics = useHomeMetrics();
   const visibleItems = NAV_ITEMS.filter((item) => can(item.permission));
 
   return (
-    <>
-      <PageHeader title="Bienvenido" description={`Sesión iniciada como ${user?.email}.`} />
-      {visibleItems.length === 0 ? (
-        <Card>
-          <p className="text-sm text-ink-soft">Tu cuenta aún no tiene permisos para usar ninguna sección.</p>
-        </Card>
-      ) : (
-        <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
-          {visibleItems.map((item) => (
-            <Link key={item.to} to={item.to}>
-              <Card className="h-full transition-shadow hover:shadow-md">
-                <h2 className="font-semibold text-ink">{item.label}</h2>
-                <p className="mt-1 text-sm text-ink-soft">{item.description}</p>
-              </Card>
-            </Link>
-          ))}
-        </div>
-      )}
-    </>
+    <Page title="Inicio" subtitle="Resumen de la plataforma">
+      <div className="space-y-8">
+        {visibleItems.length === 0 ? (
+          <Card>
+            <p className="text-sm text-ink-soft">
+              Tu cuenta aún no tiene permisos para usar ninguna sección.
+            </p>
+          </Card>
+        ) : (
+          <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+            {visibleItems.map((item) => (
+              <FeatureCard key={item.to} item={item} metric={metrics[item.to]} />
+            ))}
+          </div>
+        )}
+        {can('audit:read') && <AuditOverview />}
+      </div>
+    </Page>
   );
 };

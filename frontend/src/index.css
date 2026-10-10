@@ -6,6 +6,8 @@
   --color-bg-page: #f7f8fa;
   --color-bg-card: #ffffff;
   --color-border: #e5e7eb;
+  /* Form controls need a clearer outline than the dividers between sections. */
+  --color-border-strong: #c3c9d4;
   --color-text-primary: #111827;
   --color-text-secondary: #6b7280;
   --color-text-muted: #9ca3af;
@@ -30,19 +32,24 @@
   color-scheme: light;
 }
 
-[data-theme="dark"] {
-  --color-bg-page: #0f1115;
-  --color-bg-card: #1a1d23;
-  --color-border: #2a2e37;
-  --color-text-primary: #f3f4f6;
-  --color-text-secondary: #9ca3af;
-  --color-primary-soft: #1e1b3a;
-
-  color-scheme: dark;
-}
-
 @layer base {
+  /* Disables the elastic overscroll that reveals the page background behind a fixed layout. */
+  html,
+  body {
+    overscroll-behavior: none;
+  }
+
   body {
     @apply bg-page font-sans text-ink antialiased;
+  }
+}
+
+@layer components {
+  /* Translucent surface with a hairline edge, so it reads against the page background. */
+  .glass-card {
+    background: color-mix(in srgb, var(--color-bg-card) 78%, transparent);
+    border: 1px solid var(--color-border);
+    -webkit-backdrop-filter: blur(16px);
+    backdrop-filter: blur(16px);
   }
 }

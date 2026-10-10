@@ -11,11 +11,7 @@ export const RegisterPage = () => {
   const navigate = useNavigate();
   const toast = useToast();
   const [registerAccount, { isLoading }] = useRegisterMutation();
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<NewAccountValues>({ resolver: zodResolver(newAccountSchema) });
+  const form = useForm<NewAccountValues>({ resolver: zodResolver(newAccountSchema), mode: 'onTouched' });
 
   const onSubmit = async (values: NewAccountValues) => {
     const result = await registerAccount(values);
@@ -25,13 +21,13 @@ export const RegisterPage = () => {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
-      <h1 className="text-xl font-bold text-ink">Crear cuenta</h1>
-      <NewAccountFields register={register} errors={errors} />
-      <Button type="submit" loading={isLoading} className="w-full">
+    <form onSubmit={form.handleSubmit(onSubmit)} noValidate className="space-y-1">
+      <h1 className="mb-5 text-center text-2xl font-bold text-ink">Crear cuenta</h1>
+      <NewAccountFields form={form} />
+      <Button type="submit" size="lg" loading={isLoading} className="mt-2 w-full">
         Registrarme
       </Button>
-      <p className="text-center text-sm text-ink-soft">
+      <p className="pt-4 text-center text-sm text-ink-soft">
         ¿Ya tienes cuenta?{' '}
         <Link to="/login" className="font-medium text-primary hover:underline">
           Inicia sesión

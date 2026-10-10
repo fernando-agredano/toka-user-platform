@@ -1,4 +1,4 @@
-import { AssistantPage } from '@/pages/AssistantPage';
+import { AssistantWidget } from '@/components/assistant/AssistantWidget';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
@@ -36,14 +36,17 @@ const chatResponse = {
 
 const ask = async (question: string) => {
   const user = userEvent.setup();
+  if (screen.queryByRole('button', { name: 'Abrir asistente' })) {
+    await user.click(screen.getByRole('button', { name: 'Abrir asistente' }));
+  }
   await user.type(screen.getByLabelText('Mensaje'), question);
   await user.click(screen.getByRole('button', { name: 'Enviar' }));
 };
 
-describe('AssistantPage', () => {
+describe('AssistantWidget', () => {
   it('muestra la respuesta con las fuentes que cita, su sección y quién la generó', async () => {
     server.use(http.post(CHAT_URL, () => HttpResponse.json(chatResponse)));
-    renderWithProviders(<AssistantPage />);
+    renderWithProviders(<AssistantWidget />);
 
     await ask('¿Cuántos intentos tengo?');
 
@@ -62,7 +65,7 @@ describe('AssistantPage', () => {
         return HttpResponse.json(chatResponse);
       }),
     );
-    renderWithProviders(<AssistantPage />);
+    renderWithProviders(<AssistantWidget />);
 
     await ask('primera pregunta');
     await screen.findByText(/se bloquea tras 5 intentos/);
@@ -76,10 +79,40 @@ describe('AssistantPage', () => {
     server.use(
       http.post(CHAT_URL, () => HttpResponse.json(makeProblem(503, 'LLM unavailable'), { status: 503 })),
     );
-    renderWithProviders(<AssistantPage />);
+    renderWithProviders(<AssistantWidget />);
 
     await ask('hola');
 
     expect(await screen.findByText(/no está disponible en este momento/)).toBeInTheDocument();
+  });
+});
+
+describe('AssistantWidget launcher', () => {
+  it('mantiene el chat oculto hasta abrirlo con el botón flotante', async () => {
+    renderWithProviders(<AssistantWidget />);
+
+    expect(screen.queryByRole('textbox', { name: 'Mensaje' })).not.toBeInTheDocument();
+
+    await userEvent.setup().click(screen.getByRole('button', { name: 'Abrir asistente' }));
+
+    expect(screen.getByRole('textbox', { name: 'Mensaje' })).toBeInTheDocument();
+  });
+
+  it('envía una pregunta sugerida al pulsarla', async () => {
+    const bodies: string[] = [];
+    server.use(
+      http.post(CHAT_URL, async ({ request }) => {
+        bodies.push(((await request.json()) as { message: string }).message);
+        return HttpResponse.json(chatResponse);
+      }),
+    );
+    renderWithProviders(<AssistantWidget />);
+    const user = userEvent.setup();
+
+    await user.click(screen.getByRole('button', { name: 'Abrir asistente' }));
+    await user.click(screen.getByRole('button', { name: '¿Cuál es la política de contraseñas?' }));
+
+    expect(await screen.findByText(/se bloquea tras 5 intentos/)).toBeInTheDocument();
+    expect(bodies).toEqual(['¿Cuál es la política de contraseñas?']);
   });
 });

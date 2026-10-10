@@ -10,28 +10,24 @@ import { Modal } from '../ui/Modal';
 export const CreateUserModal = ({ onClose }: { onClose: () => void }) => {
   const toast = useToast();
   const [createUser, { isLoading }] = useCreateUserMutation();
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<NewAccountValues>({ resolver: zodResolver(newAccountSchema) });
+  const form = useForm<NewAccountValues>({ resolver: zodResolver(newAccountSchema), mode: 'onTouched' });
 
   const onSubmit = async (values: NewAccountValues) => {
     const result = await createUser(values);
     if ('error' in result) return;
-    toast.success(`Usuario ${result.data.email} creado.`);
+    toast.success(`${result.data.email} ya puede iniciar sesión.`, 'Usuario creado');
     onClose();
   };
 
   return (
-    <Modal title="Nuevo usuario" onClose={onClose}>
-      <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
-        <NewAccountFields register={register} errors={errors} />
-        <div className="flex justify-end gap-3 pt-2">
-          <Button variant="secondary" onClick={onClose}>
+    <Modal title="Nuevo usuario" size="lg" onClose={onClose}>
+      <form onSubmit={form.handleSubmit(onSubmit)} noValidate className="space-y-1">
+        <NewAccountFields form={form} />
+        <div className="flex justify-end gap-3 pt-4">
+          <Button variant="secondary" size="lg" onClick={onClose}>
             Cancelar
           </Button>
-          <Button type="submit" loading={isLoading}>
+          <Button type="submit" size="lg" loading={isLoading}>
             Crear usuario
           </Button>
         </div>

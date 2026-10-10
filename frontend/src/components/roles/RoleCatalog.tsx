@@ -1,45 +1,74 @@
+import type { RoleView } from '@/@types/api';
 import { useListRolesQuery } from '@/api/roles.api';
-import { Badge } from '../ui/Badge';
 import { Button } from '../ui/Button';
-import { Card } from '../ui/Card';
+import { Icon } from '../ui/Icon';
 import { Skeleton } from '../ui/Skeleton';
+import { PermissionTags } from './PermissionTags';
+
+/** One segment per permission in the system; filled when the role grants it. */
+const PermissionMeter = ({ role, allPermissions }: { role: RoleView; allPermissions: string[] }) => (
+  <div>
+    <div className="flex gap-1">
+      {allPermissions.map((permission) => (
+        <span
+          key={permission}
+          className={`h-1.5 flex-1 rounded-full ${role.permissions.includes(permission) ? 'bg-primary' : 'bg-line'}`}
+        />
+      ))}
+    </div>
+    <p className="mt-1.5 text-xs text-ink-muted">
+      {role.permissions.length} de {allPermissions.length} permisos
+    </p>
+  </div>
+);
 
 export const RoleCatalog = () => {
   const { data: roles, isLoading, isError, refetch } = useListRolesQuery();
 
+  if (isError) {
+    return (
+      <div className="flex flex-col items-center gap-3 rounded-lg border border-line bg-card py-10 text-center">
+        <p className="text-sm text-ink-soft">No se pudieron cargar los roles.</p>
+        <Button variant="secondary" onClick={refetch}>
+          Reintentar
+        </Button>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="grid gap-5 lg:grid-cols-3">
+        <Skeleton className="h-56 w-full" />
+        <Skeleton className="h-56 w-full" />
+        <Skeleton className="h-56 w-full" />
+      </div>
+    );
+  }
+
+  const allPermissions = [...new Set(roles?.flatMap((role) => role.permissions))].sort();
+
   return (
-    <Card>
-      <h2 className="mb-4 text-lg font-semibold text-ink">Catálogo de roles</h2>
-      {isLoading && (
-        <div className="space-y-4">
-          <Skeleton className="h-20 w-full" />
-          <Skeleton className="h-20 w-full" />
-        </div>
-      )}
-      {isError && (
-        <div className="space-y-3">
-          <p className="text-sm text-ink-soft">No se pudieron cargar los roles.</p>
-          <Button variant="secondary" onClick={refetch}>
-            Reintentar
-          </Button>
-        </div>
-      )}
-      <ul className="space-y-4">
-        {roles?.map((role) => (
-          <li key={role.id} className="rounded-sm border border-line p-4">
-            <div className="flex items-baseline justify-between gap-2">
-              <h3 className="font-semibold text-ink">{role.name}</h3>
-              <span className="text-xs text-ink-soft">{role.permissions.length} permisos</span>
+    <ul className="grid shrink-0 gap-5 lg:grid-cols-3">
+      {roles?.map((role) => (
+        <li key={role.id} className="flex flex-col rounded-lg border border-line bg-card p-5">
+          <div className="flex items-center gap-3">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary-soft text-primary">
+              <Icon name="roles" className="h-5 w-5" />
+            </span>
+            <div className="min-w-0">
+              <h2 className="truncate text-base font-bold tracking-tight text-ink">{role.name}</h2>
+              <p className="truncate text-xs text-ink-soft">{role.description || 'Sin descripción'}</p>
             </div>
-            {role.description && <p className="mt-1 text-sm text-ink-soft">{role.description}</p>}
-            <div className="mt-3 flex flex-wrap gap-1.5">
-              {role.permissions.map((permission) => (
-                <Badge key={permission}>{permission}</Badge>
-              ))}
-            </div>
-          </li>
-        ))}
-      </ul>
-    </Card>
+          </div>
+          <div className="mt-3.5">
+            <PermissionMeter role={role} allPermissions={allPermissions} />
+          </div>
+          <div className="mt-3.5 border-t border-line pt-3.5">
+            <PermissionTags permissions={role.permissions} compact />
+          </div>
+        </li>
+      ))}
+    </ul>
   );
 };

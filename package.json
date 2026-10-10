@@ -17,7 +17,8 @@
     "review:audit": "node scripts/review/audit.mjs",
     "review:mcp": "node scripts/review/mcp-connect.mjs",
     "review:logs": "docker compose logs --tail 50",
-    "coverage:style": "node scripts/style-coverage.mjs"
+    "coverage:style": "node scripts/style-coverage.mjs",
+    "review:seed": "node scripts/review/seed-demo-users.mjs"
   },
   "devDependencies": {
     "@fontsource/inter": "^5.3.0",

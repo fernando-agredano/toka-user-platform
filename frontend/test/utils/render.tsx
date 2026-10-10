@@ -4,6 +4,7 @@ import { sessionCleared, sessionStarted } from '@/api/auth-slice';
 import { store } from '@/api/store';
 import { toastDismissed } from '@/api/toast-slice';
 import { Toaster } from '@/components/ui/Toaster';
+import { ConfirmProvider } from '@/hooks/use-confirm';
 import { render } from '@testing-library/react';
 import type { ReactElement } from 'react';
 import { Provider } from 'react-redux';
@@ -35,8 +36,10 @@ export const renderWithProviders = (ui: ReactElement, options: RenderOptions = {
     router,
     ...render(
       <Provider store={store}>
-        <RouterProvider router={router} />
-        <Toaster />
+        <ConfirmProvider>
+          <RouterProvider router={router} />
+          <Toaster />
+        </ConfirmProvider>
       </Provider>,
     ),
   };

@@ -92,7 +92,7 @@ describe('UsersPage', () => {
 
     await screen.findByText('Luis Pérez');
     expect(screen.queryByRole('button', { name: 'Nuevo usuario' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Editar' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /^Editar a / })).not.toBeInTheDocument();
   });
 
   it('muestra las acciones de escritura cuando el usuario tiene users:write', async () => {
@@ -101,6 +101,52 @@ describe('UsersPage', () => {
 
     await screen.findByText('Luis Pérez');
     expect(screen.getByRole('button', { name: 'Nuevo usuario' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Desactivar' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^Desactivar a / })).toBeInTheDocument();
+  });
+
+  describe('desactivar usuario', () => {
+    const renderWithActiveUser = () => {
+      server.use(http.get(USERS_URL, () => HttpResponse.json(page([makeUser({ id: 'user-2' })]))));
+      renderUsersPage(['users:read', 'users:write']);
+    };
+
+    it('pide confirmación y, al confirmar, llama a la API y avisa con un toast', async () => {
+      let deactivateCalls = 0;
+      server.use(
+        http.post(`${USERS_URL}/user-2/deactivate`, () => {
+          deactivateCalls += 1;
+          return HttpResponse.json(makeUser({ id: 'user-2', status: 'INACTIVE' }));
+        }),
+      );
+      renderWithActiveUser();
+      const user = userEvent.setup();
+
+      await user.click(await screen.findByRole('button', { name: /^Desactivar a / }));
+      expect(screen.getByRole('heading', { name: 'Desactivar usuario' })).toBeInTheDocument();
+      expect(deactivateCalls).toBe(0);
+
+      await user.click(screen.getByRole('button', { name: 'Desactivar' }));
+
+      expect(await screen.findByText(/fue desactivado/)).toBeInTheDocument();
+      expect(deactivateCalls).toBe(1);
+    });
+
+    it('no llama a la API cuando se cancela la confirmación', async () => {
+      let deactivateCalls = 0;
+      server.use(
+        http.post(`${USERS_URL}/user-2/deactivate`, () => {
+          deactivateCalls += 1;
+          return HttpResponse.json(makeUser());
+        }),
+      );
+      renderWithActiveUser();
+      const user = userEvent.setup();
+
+      await user.click(await screen.findByRole('button', { name: /^Desactivar a / }));
+      await user.click(screen.getByRole('button', { name: 'Cancelar' }));
+
+      expect(screen.queryByRole('heading', { name: 'Desactivar usuario' })).not.toBeInTheDocument();
+      expect(deactivateCalls).toBe(0);
+    });
   });
 });

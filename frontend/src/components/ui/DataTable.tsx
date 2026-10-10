@@ -17,6 +17,8 @@ interface DataTableProps<T> {
   onRetry: () => void;
   emptyMessage: string;
   skeletonRows?: number;
+  /** Classes for the scroll container, e.g. `min-h-0 flex-1` to fill a bounded card. */
+  className?: string;
 }
 
 export const DataTable = <T,>({
@@ -28,6 +30,7 @@ export const DataTable = <T,>({
   onRetry,
   emptyMessage,
   skeletonRows = 5,
+  className = '',
 }: DataTableProps<T>) => {
   if (isError) {
     return (
@@ -41,22 +44,25 @@ export const DataTable = <T,>({
   }
 
   return (
-    <div className="overflow-x-auto">
+    <div className={`overflow-auto ${className}`}>
       <table className="w-full text-left text-sm">
         <thead>
-          <tr className="border-b border-line text-xs uppercase tracking-wide text-ink-soft">
+          <tr className="text-xs uppercase tracking-wider text-ink-muted">
             {columns.map((column) => (
-              <th key={column.header} className={`px-4 py-3 font-medium ${column.className ?? ''}`}>
+              <th
+                key={column.header}
+                className={`sticky top-0 z-10 bg-page px-4 py-3.5 font-semibold ${column.className ?? ''}`}
+              >
                 {column.header}
               </th>
             ))}
           </tr>
         </thead>
-        <tbody>
+        <tbody className="divide-y divide-line">
           {isLoading
             ? Array.from({ length: skeletonRows }, (_, index) => (
                 // biome-ignore lint/suspicious/noArrayIndexKey: static placeholder rows
-                <tr key={index} className="border-b border-line last:border-0">
+                <tr key={index}>
                   {columns.map((column) => (
                     <td key={column.header} className="px-4 py-4">
                       <Skeleton className="h-4 w-full max-w-40" />
@@ -65,9 +71,9 @@ export const DataTable = <T,>({
                 </tr>
               ))
             : rows?.map((row) => (
-                <tr key={rowKey(row)} className="border-b border-line last:border-0">
+                <tr key={rowKey(row)}>
                   {columns.map((column) => (
-                    <td key={column.header} className={`px-4 py-3 align-middle ${column.className ?? ''}`}>
+                    <td key={column.header} className={`px-4 py-4 align-middle ${column.className ?? ''}`}>
                       {column.cell(row)}
                     </td>
                   ))}
@@ -76,7 +82,7 @@ export const DataTable = <T,>({
         </tbody>
       </table>
       {!isLoading && rows?.length === 0 && (
-        <p className="py-12 text-center text-sm text-ink-soft">{emptyMessage}</p>
+        <p className="py-14 text-center text-sm text-ink-soft">{emptyMessage}</p>
       )}
     </div>
   );
